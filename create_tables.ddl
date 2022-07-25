@@ -143,7 +143,7 @@ ALTER TABLE nauczyciel_przedmiot
 ALTER TABLE nauczyciele
     ADD CONSTRAINT nauczyciele_dane_osobowe_fk FOREIGN KEY ( id_dane_osobowe )
         REFERENCES dane_osobowe ( id_dane_osobowe )
-		ON DELETE CASCADE; -- np usuniecie jak ktos chce przez rodo 
+		ON DELETE CASCADE;
 
 ALTER TABLE oceny
     ADD CONSTRAINT oceny_przedmioty_uczen_fk FOREIGN KEY ( id_pary_przedmioty_uczen )
@@ -182,4 +182,4 @@ ALTER TABLE uczniowie
 ALTER TABLE uczniowie
     ADD CONSTRAINT uczniowie_dane_osobowe_fk FOREIGN KEY ( id_dane_osobowe )
         REFERENCES dane_osobowe ( id_dane_osobowe )
-		ON DELETE CASCADE; -- np usuniecie jak ktos chce przez rodo 
+		ON DELETE CASCADE;
