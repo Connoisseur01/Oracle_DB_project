@@ -1198,6 +1198,234 @@ BEGIN
 END;
 /
 
+-- przydzielone godziny --
+
+DECLARE
+    id INTEGER;
+    przedmiot VARCHAR2(30);
+    PROCEDURE przydziel_godz(id_naucz INTEGER, przedmiot VARCHAR2, id_klas VARCHAR2) IS
+            id_naucz_przed INTEGER;
+            id_przed_klasa INTEGER;
+            ilosc_godzin INTEGER;
+
+            klasa INTEGER := SUBSTR(id_klas, 0, 1);
+            id_przed INTEGER;
+        BEGIN
+
+            SELECT id_przedmioty_klasy, ilosc_godzin_przedmiotu, id_przedmiotu INTO id_przed_klasa, ilosc_godzin, id_przed
+            FROM przedmioty_klasy
+            WHERE id_klasy = id_klas AND id_przedmiotu IN (SELECT id_przedmiotu
+                                                        FROM przedmioty
+                                                        WHERE nazwa_przedmiotu LIKE przedmiot || '_' || klasa);
+
+            SELECT id_nauczyciel_przedmiot INTO id_naucz_przed
+            FROM nauczyciel_przedmiot
+            WHERE id_nauczyciela = id_naucz AND id_przedmiotu = id_przed;
+
+            INSERT INTO przydzielone_godziny (id_nauczyciel_przedmiot, id_przedmioty_klasy, ilosc_przydzielonych_godzin)
+                VALUES (id_naucz_przed, id_przed_klasa, ilosc_godzin);
+        END;
+BEGIN
+    --matematyka --
+    -- mat-fiz
+    przydziel_godz(7, 'matematyka', '1a');
+    przydziel_godz(7, 'matematyka', '2a');
+    przydziel_godz(7, 'matematyka', '3a');
+    przydziel_godz(7, 'matematyka', '4a');
+    -- biol-hem
+    przydziel_godz(26, 'matematyka', '1b');
+    przydziel_godz(26, 'matematyka', '2b');
+    przydziel_godz(26, 'matematyka', '3b');
+    przydziel_godz(26, 'matematyka', '4b');
+    -- ekonomiczna
+    przydziel_godz(19, 'matematyka', '1c');
+    przydziel_godz(19, 'matematyka', '2c');
+    przydziel_godz(19, 'matematyka', '3c');
+    przydziel_godz(19, 'matematyka', '4c');
+    -- humanistyczna
+    przydziel_godz(26, 'matematyka', '1d');
+    przydziel_godz(26, 'matematyka', '2d');
+    przydziel_godz(26, 'matematyka', '3d');
+    przydziel_godz(26, 'matematyka', '4d');
+    
+    -- polski
+    -- mat-fiz
+    przydziel_godz(10, 'polski', '1a');
+    przydziel_godz(10, 'polski', '2a');
+    przydziel_godz(10, 'polski', '3a');
+    przydziel_godz(10, 'polski', '4a');
+    -- biol-hem
+    przydziel_godz(10, 'polski', '1b');
+    przydziel_godz(10, 'polski', '2b');
+    przydziel_godz(10, 'polski', '3b');
+    przydziel_godz(10, 'polski', '4b');
+    --ekonomiczna
+    przydziel_godz(10, 'polski', '1c');
+    przydziel_godz(10, 'polski', '2c');
+    przydziel_godz(13, 'polski', '3c');
+    przydziel_godz(13, 'polski', '4c');
+    -- humanistyczna
+    przydziel_godz(13, 'polski', '1d');
+    przydziel_godz(13, 'polski', '2d');
+    przydziel_godz(13, 'polski', '3d');
+    przydziel_godz(13, 'polski', '4d');
+    
+    --historia
+    --mat-fiz
+    przydziel_godz(8, 'historia', '1a');
+    przydziel_godz(8, 'historia', '2a');
+    przydziel_godz(8, 'historia', '3a');
+    przydziel_godz(8, 'historia', '4a');
+    --biol-hem
+    przydziel_godz(8, 'historia', '1b');
+    przydziel_godz(8, 'historia', '2b');
+    przydziel_godz(8, 'historia', '3b');
+    przydziel_godz(8, 'historia', '4b');
+    --ekonomiczna
+    przydziel_godz(8, 'historia', '1c');
+    przydziel_godz(8, 'historia', '2c');
+    przydziel_godz(8, 'historia', '3c');
+    przydziel_godz(8, 'historia', '4c');
+    --humanistyczna
+    przydziel_godz(3, 'historia', '1d');
+    przydziel_godz(3, 'historia', '2d');
+    przydziel_godz(3, 'historia', '3d');
+    przydziel_godz(3, 'historia', '4d');
+    
+    -- fizyka
+    --mat-fiz
+    przydziel_godz(4, 'fizyka', '1a');
+    przydziel_godz(4, 'fizyka', '2a');
+    przydziel_godz(4, 'fizyka', '3a');
+    przydziel_godz(4, 'fizyka', '4a');
+    --biol-hem
+    przydziel_godz(4, 'fizyka', '1b');
+    --ekonomiczna
+    przydziel_godz(4, 'fizyka', '1c');
+    --humanistyczna
+    przydziel_godz(4, 'fizyka', '1d');
+    
+    
+    --angielski
+    --mat-fiz
+    przydziel_godz(1, 'angielski', '1a');
+    przydziel_godz(1, 'angielski', '2a');
+    przydziel_godz(1, 'angielski', '3a');
+    przydziel_godz(1, 'angielski', '4a');
+    --biol-hem
+    przydziel_godz(1, 'angielski', '1b');
+    przydziel_godz(1, 'angielski', '2b');
+    przydziel_godz(1, 'angielski', '3b');
+    przydziel_godz(1, 'angielski', '4b');
+    --ekonomiczna
+    przydziel_godz(9, 'angielski', '1c');
+    przydziel_godz(9, 'angielski', '2c');
+    przydziel_godz(9, 'angielski', '3c');
+    przydziel_godz(9, 'angielski', '4c');
+    -- humanistyczna
+    przydziel_godz(1, 'angielski', '1d');
+    przydziel_godz(1, 'angielski', '2d');
+    przydziel_godz(1, 'angielski', '3d');
+    przydziel_godz(1, 'angielski', '4d');
+    
+    --wf
+    --mat-fiz
+    przydziel_godz(14, 'wychowanie_fizyczne', '1a');
+    przydziel_godz(14, 'wychowanie_fizyczne', '2a');
+    przydziel_godz(14, 'wychowanie_fizyczne', '3a');
+    przydziel_godz(14, 'wychowanie_fizyczne', '4a');
+    --biol-hem
+    przydziel_godz(14, 'wychowanie_fizyczne', '1b');
+    przydziel_godz(14, 'wychowanie_fizyczne', '2b');
+    przydziel_godz(14, 'wychowanie_fizyczne', '3b');
+    przydziel_godz(14, 'wychowanie_fizyczne', '4b');
+    --ekonomiczna
+    przydziel_godz(30, 'wychowanie_fizyczne', '1c');
+    przydziel_godz(30, 'wychowanie_fizyczne', '2c');
+    przydziel_godz(30, 'wychowanie_fizyczne', '3c');
+    przydziel_godz(30, 'wychowanie_fizyczne', '4c');
+    -- humanistyczna
+    przydziel_godz(30, 'wychowanie_fizyczne', '1d');
+    przydziel_godz(30, 'wychowanie_fizyczne', '2d');
+    przydziel_godz(30, 'wychowanie_fizyczne', '3d');
+    przydziel_godz(30, 'wychowanie_fizyczne', '4d');
+    
+    --biologia
+    --mat-fiz
+    przydziel_godz(17, 'biologia', '1a');
+    --biol-hem
+    przydziel_godz(17, 'biologia', '1b');
+    przydziel_godz(17, 'biologia', '2b');
+    przydziel_godz(17, 'biologia', '3b');
+    przydziel_godz(17, 'biologia', '4b');
+    --ekonomiczna
+    przydziel_godz(17, 'biologia', '1c');
+    --humanistyczna
+    przydziel_godz(17, 'biologia', '1d');
+    
+    --chemia
+    --mat-fiz
+    przydziel_godz(20, 'chemia', '1a');
+    --biol-hem
+    przydziel_godz(20, 'chemia', '1b');
+    przydziel_godz(20, 'chemia', '2b');
+    przydziel_godz(20, 'chemia', '3b');
+    przydziel_godz(20, 'chemia', '4b');
+    -- ekonomiczna
+    przydziel_godz(20, 'chemia', '1c');
+    --humanistyczna
+    przydziel_godz(20, 'chemia', '1d');
+    
+    -- geografia
+    --mat-fiz
+    przydziel_godz(23, 'geografia', '1a');
+    --biol-hem
+    przydziel_godz(23, 'geografia', '1b');
+    --ekonomiczna
+    przydziel_godz(23, 'geografia', '1c');
+    przydziel_godz(23, 'geografia', '2c');
+    przydziel_godz(23, 'geografia', '3c');
+    przydziel_godz(23, 'geografia', '4c');
+    --humanistyczna
+    przydziel_godz(23, 'geografia', '1d');
+    
+    --niemiecki
+    -- mat-fiz
+    przydziel_godz(27, 'niemiecki', '1a');
+    przydziel_godz(27, 'niemiecki', '2a');
+    przydziel_godz(27, 'niemiecki', '3a');
+    przydziel_godz(27, 'niemiecki', '4a');
+    -- biol-hem
+    przydziel_godz(27, 'niemiecki', '1b');
+    przydziel_godz(27, 'niemiecki', '2b');
+    przydziel_godz(27, 'niemiecki', '3b');
+    przydziel_godz(27, 'niemiecki', '4b');
+    --ekonomiczna
+    przydziel_godz(27, 'niemiecki', '1c');
+    przydziel_godz(27, 'niemiecki', '2c');
+    przydziel_godz(27, 'niemiecki', '3c');
+    przydziel_godz(27, 'niemiecki', '4c');
+    --humanistyczna
+    przydziel_godz(27, 'niemiecki', '1d');
+    przydziel_godz(27, 'niemiecki', '2d');
+    przydziel_godz(27, 'niemiecki', '3d');
+    przydziel_godz(27, 'niemiecki', '4d');
+    
+    --informatyka
+    --mat-fiz
+    przydziel_godz(15, 'informatyka', '1a');
+    przydziel_godz(15, 'informatyka', '2a');
+    przydziel_godz(15, 'informatyka', '3a');
+    przydziel_godz(15, 'informatyka', '4a');
+    --biol-hem
+    przydziel_godz(15, 'informatyka', '1b');
+    --ekonomiczna
+    przydziel_godz(15, 'informatyka', '1c');
+    --humanistyczna
+    przydziel_godz(15, 'informatyka', '1d');
+END;
+/
+
 -- przedmiot-uczen
 
 DECLARE
@@ -1245,7 +1473,7 @@ vsql:= 'SELECT ' || i || ' as stala,   p.id_przedmiotu
 					 WHERE id_klasy in  ('''||v_num_klasy||''', ''' ||to_char(to_number(substr(v_num_klasy,1,1))-1||substr(v_num_klasy,2,1))||''',''' ||to_char(to_number(substr(v_num_klasy,1,1))-2||substr(v_num_klasy,2,1))||''','''||to_char(to_number(substr(v_num_klasy,1,1))-3||substr(v_num_klasy,2,1))|| ''') '; 
 
 end if; 		
-	dbms_output.put_line(vsql);	
+	--dbms_output.put_line(vsql);	
 	
 open c1 for vsql; 
 
