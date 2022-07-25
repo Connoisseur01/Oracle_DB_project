@@ -359,8 +359,6 @@ INSERT INTO dane_osobowe (imie, nazwisko, numer_telefonu, email, adres_zamieszka
 INSERT INTO dane_osobowe (imie, nazwisko, numer_telefonu, email, adres_zamieszkania, data_urodzenia, pesel) VALUES ('Lyell', 'Karlolczak', 856491887, 'lkarlolczak9x@wisc.edu' , '46760 Sunfield Point', to_date( '23012006' , 'DDMMYYYY'), 06012393566);
 INSERT INTO dane_osobowe (imie, nazwisko, numer_telefonu, email, adres_zamieszkania, data_urodzenia, pesel) VALUES ('Emalia', 'Doorey', 767241973, 'edoorey9y@narod.ru' , '2 Straubel Lane', to_date( '16082006' , 'DDMMYYYY'), 06081610617);
 INSERT INTO dane_osobowe (imie, nazwisko, numer_telefonu, email, adres_zamieszkania, data_urodzenia, pesel) VALUES ('Ellswerth', 'Hellsdon', 723089608, 'ehellsdon9z@aol.com' , '13 Pierstorff Crossing', to_date( '30042006' , 'DDMMYYYY'), 06043095696);
-
-
 INSERT INTO dane_osobowe (imie, nazwisko, numer_telefonu, email, adres_zamieszkania, data_urodzenia, pesel) VALUES ('Malissa', 'Kleinholz', 4989369005, 'mkleinholz7b@icio.us' , '6 Declaration Avenue', to_date( '02111964' , 'DDMMYYYY'), 67729995689);
 INSERT INTO dane_osobowe (imie, nazwisko, numer_telefonu, email, adres_zamieszkania, data_urodzenia, pesel) VALUES ('Augustine', 'Copozio', 4324090844, 'acopozio7c@google.es' , '517 American Ash Circle', to_date( '23061985' , 'DDMMYYYY'), 59703378947);
 INSERT INTO dane_osobowe (imie, nazwisko, numer_telefonu, email, adres_zamieszkania, data_urodzenia, pesel) VALUES ('Bar', 'Struijs', 2004387266, 'bstruijs7d@ow.ly' , '9456 Birchwood Plaza', to_date( '09111979' , 'DDMMYYYY'), 99825381786);
@@ -404,7 +402,7 @@ INSERT INTO dane_osobowe (imie, nazwisko, numer_telefonu, email, adres_zamieszka
 -- nauczyciele
 
 
-INSERT INTO NAUCZYCIELE (id_dane_osobowe, data_rozpoczecia_pracy, data_zakonczenia_pracy, max_godz_tyg) VALUES (361, to_date('04122020', 'DDMMYYYY'), to_date('22052021', 'DDMMYYYY'), NULL);
+INSERT INTO NAUCZYCIELE (id_dane_osobowe, data_rozpoczecia_pracy, data_zakonczenia_pracy, max_godz_tyg) VALUES (361, to_date('04122020', 'DDMMYYYY'), NULL, 40);
 INSERT INTO NAUCZYCIELE (id_dane_osobowe, data_rozpoczecia_pracy, data_zakonczenia_pracy, max_godz_tyg) VALUES (362, to_date('30052003', 'DDMMYYYY'), to_date('11112016', 'DDMMYYYY'), NULL);
 INSERT INTO NAUCZYCIELE (id_dane_osobowe, data_rozpoczecia_pracy, data_zakonczenia_pracy, max_godz_tyg) VALUES (363, to_date('28092018', 'DDMMYYYY'), NULL, 18);
 INSERT INTO NAUCZYCIELE (id_dane_osobowe, data_rozpoczecia_pracy, data_zakonczenia_pracy, max_godz_tyg) VALUES (364, to_date('06112010', 'DDMMYYYY'), NULL, 30);
@@ -1160,7 +1158,7 @@ BEGIN
     obsadz_nauczyciela(4, 'fizyka', true);
     obsadz_nauczyciela(35, 'fizyka', true);
     --angielski
-    obsadz_nauczyciela(7, 'angielski', true);
+    obsadz_nauczyciela(1, 'angielski', true);
     obsadz_nauczyciela(9, 'angielski', true);
     -- wf
     obsadz_nauczyciela(14, 'wychowanie_fizyczne', false);
@@ -1182,7 +1180,6 @@ BEGIN
     obsadz_nauczyciela(15, 'informatyka', true);
     
     -- byli nauczyciele
-    obsadz_nauczyciela(1, 'matematyka', false);
     obsadz_nauczyciela(2, 'polski', true);
     obsadz_nauczyciela(11, 'biologia', true);
     obsadz_nauczyciela(12, 'informatyka', true);
@@ -1198,5 +1195,72 @@ BEGIN
     obsadz_nauczyciela(34, 'historia', false);
     obsadz_nauczyciela(36, 'informatyka', false);
     
+END;
+/
+
+-- przedmiot-uczen
+
+DECLARE
+	c1 SYS_REFCURSOR;
+	v1 INTEGER;
+	v2 INTEGER;
+	v_num_klasy char (2); 
+	
+	vsql varchar2(2000); 
+	
+BEGIN
+
+	FOR i IN 1..360 LOOP
+	
+select id_klasy into v_num_klasy
+from grupy  
+JOIN uczniowie USING ( id_grupy )
+WHERE id_dane_osobowe = i;
+
+
+if lpad(v_num_klasy,1)=1 then
+
+vsql:=	-- można wyrzucić where tylko do ifa -- do poprawienia potem  
+'SELECT ' ||i || ' as stala,   p.id_przedmiotu 
+					 FROM przedmioty_klasy pk
+					 RIGHT JOIN przedmioty       p ON p.id_przedmiotu = pk.id_przedmiotu
+					 WHERE id_klasy = '''||v_num_klasy||'''  ';
+
+elsif lpad(v_num_klasy,1)=2 then 
+vsql:= 'SELECT ' || i || ' as stala,   p.id_przedmiotu 
+					 FROM przedmioty_klasy pk
+					 RIGHT JOIN przedmioty       p ON p.id_przedmiotu = pk.id_przedmiotu
+					 WHERE id_klasy in  ('''||v_num_klasy||''', '''||to_char(to_number(substr(v_num_klasy,1,1))-1||substr(v_num_klasy,2,1))||''') '; 
+
+elsif lpad(v_num_klasy,1)=3 then 
+vsql:= 'SELECT ' || i || ' as stala,   p.id_przedmiotu 
+					 FROM przedmioty_klasy pk
+					 RIGHT JOIN przedmioty       p ON p.id_przedmiotu = pk.id_przedmiotu
+					 WHERE id_klasy in  ('''||v_num_klasy||''', ''' ||to_char(to_number(substr(v_num_klasy,1,1))-1||substr(v_num_klasy,2,1))||''', ''' ||to_char(to_number(substr(v_num_klasy,1,1))-2||substr(v_num_klasy,2,1))||''') '; 
+		
+elsif lpad(v_num_klasy,1)=4 then 
+vsql:= 'SELECT ' || i || ' as stala,   p.id_przedmiotu 
+					 FROM przedmioty_klasy pk
+					 RIGHT JOIN przedmioty       p ON p.id_przedmiotu = pk.id_przedmiotu
+					 WHERE id_klasy in  ('''||v_num_klasy||''', ''' ||to_char(to_number(substr(v_num_klasy,1,1))-1||substr(v_num_klasy,2,1))||''',''' ||to_char(to_number(substr(v_num_klasy,1,1))-2||substr(v_num_klasy,2,1))||''','''||to_char(to_number(substr(v_num_klasy,1,1))-3||substr(v_num_klasy,2,1))|| ''') '; 
+
+end if; 		
+	dbms_output.put_line(vsql);	
+	
+open c1 for vsql; 
+
+		LOOP
+			FETCH c1 INTO
+				v1, v2;
+			EXIT WHEN c1%notfound;
+			
+			INSERT INTO przedmioty_uczen (	id_ucznia	, id_przedmiotu) 
+			VALUES 					(	v1			, v2);		
+			--dbms_output.put_line(v1);
+			
+		END LOOP;
+
+		CLOSE c1;
+	END LOOP;
 END;
 /
