@@ -404,41 +404,41 @@ INSERT INTO dane_osobowe (imie, nazwisko, numer_telefonu, email, adres_zamieszka
 
 INSERT INTO NAUCZYCIELE (id_dane_osobowe, data_rozpoczecia_pracy, data_zakonczenia_pracy, max_godz_tyg) VALUES (361, to_date('04122020', 'DDMMYYYY'), NULL, 40);
 INSERT INTO NAUCZYCIELE (id_dane_osobowe, data_rozpoczecia_pracy, data_zakonczenia_pracy, max_godz_tyg) VALUES (362, to_date('30052003', 'DDMMYYYY'), to_date('11112016', 'DDMMYYYY'), NULL);
-INSERT INTO NAUCZYCIELE (id_dane_osobowe, data_rozpoczecia_pracy, data_zakonczenia_pracy, max_godz_tyg) VALUES (363, to_date('28092018', 'DDMMYYYY'), NULL, 18);
+INSERT INTO NAUCZYCIELE (id_dane_osobowe, data_rozpoczecia_pracy, data_zakonczenia_pracy, max_godz_tyg) VALUES (363, to_date('28092018', 'DDMMYYYY'), NULL, 30);
 INSERT INTO NAUCZYCIELE (id_dane_osobowe, data_rozpoczecia_pracy, data_zakonczenia_pracy, max_godz_tyg) VALUES (364, to_date('06112010', 'DDMMYYYY'), NULL, 30);
-INSERT INTO NAUCZYCIELE (id_dane_osobowe, data_rozpoczecia_pracy, data_zakonczenia_pracy, max_godz_tyg) VALUES (365, to_date('13012014', 'DDMMYYYY'), NULL, 8);
-INSERT INTO NAUCZYCIELE (id_dane_osobowe, data_rozpoczecia_pracy, data_zakonczenia_pracy, max_godz_tyg) VALUES (366, to_date('09092014', 'DDMMYYYY'), NULL, 40);
+INSERT INTO NAUCZYCIELE (id_dane_osobowe, data_rozpoczecia_pracy, data_zakonczenia_pracy, max_godz_tyg) VALUES (365, to_date('13012014', 'DDMMYYYY'), to_date('15052016', 'DDMMYYYY'), NULL);
+INSERT INTO NAUCZYCIELE (id_dane_osobowe, data_rozpoczecia_pracy, data_zakonczenia_pracy, max_godz_tyg) VALUES (366, to_date('09092010', 'DDMMYYYY'), to_date('27042014', 'DDMMYYYY'), NULL);
 INSERT INTO NAUCZYCIELE (id_dane_osobowe, data_rozpoczecia_pracy, data_zakonczenia_pracy, max_godz_tyg) VALUES (367, to_date('25012018', 'DDMMYYYY'), NULL, 35);
-INSERT INTO NAUCZYCIELE (id_dane_osobowe, data_rozpoczecia_pracy, data_zakonczenia_pracy, max_godz_tyg) VALUES (368, to_date('27102010', 'DDMMYYYY'), NULL, 11);
-INSERT INTO NAUCZYCIELE (id_dane_osobowe, data_rozpoczecia_pracy, data_zakonczenia_pracy, max_godz_tyg) VALUES (369, to_date('13012010', 'DDMMYYYY'), NULL, 26);
-INSERT INTO NAUCZYCIELE (id_dane_osobowe, data_rozpoczecia_pracy, data_zakonczenia_pracy, max_godz_tyg) VALUES (370, to_date('18122020', 'DDMMYYYY'), NULL, 12);
+INSERT INTO NAUCZYCIELE (id_dane_osobowe, data_rozpoczecia_pracy, data_zakonczenia_pracy, max_godz_tyg) VALUES (368, to_date('27102010', 'DDMMYYYY'), NULL, 30);
+INSERT INTO NAUCZYCIELE (id_dane_osobowe, data_rozpoczecia_pracy, data_zakonczenia_pracy, max_godz_tyg) VALUES (369, to_date('13012010', 'DDMMYYYY'), NULL, 25);
+INSERT INTO NAUCZYCIELE (id_dane_osobowe, data_rozpoczecia_pracy, data_zakonczenia_pracy, max_godz_tyg) VALUES (370, to_date('18122020', 'DDMMYYYY'), NULL, 40);
 INSERT INTO NAUCZYCIELE (id_dane_osobowe, data_rozpoczecia_pracy, data_zakonczenia_pracy, max_godz_tyg) VALUES (371, to_date('18022005', 'DDMMYYYY'), to_date('17102012', 'DDMMYYYY'), NULL);
 INSERT INTO NAUCZYCIELE (id_dane_osobowe, data_rozpoczecia_pracy, data_zakonczenia_pracy, max_godz_tyg) VALUES (372, to_date('21042014', 'DDMMYYYY'), to_date('12102021', 'DDMMYYYY'), NULL);
-INSERT INTO NAUCZYCIELE (id_dane_osobowe, data_rozpoczecia_pracy, data_zakonczenia_pracy, max_godz_tyg) VALUES (373, to_date('27102019', 'DDMMYYYY'), NULL, 35);
-INSERT INTO NAUCZYCIELE (id_dane_osobowe, data_rozpoczecia_pracy, data_zakonczenia_pracy, max_godz_tyg) VALUES (374, to_date('26122008', 'DDMMYYYY'), NULL, 11);
+INSERT INTO NAUCZYCIELE (id_dane_osobowe, data_rozpoczecia_pracy, data_zakonczenia_pracy, max_godz_tyg) VALUES (373, to_date('27102019', 'DDMMYYYY'), NULL, 40);
+INSERT INTO NAUCZYCIELE (id_dane_osobowe, data_rozpoczecia_pracy, data_zakonczenia_pracy, max_godz_tyg) VALUES (374, to_date('26122008', 'DDMMYYYY'), NULL, 40);
 INSERT INTO NAUCZYCIELE (id_dane_osobowe, data_rozpoczecia_pracy, data_zakonczenia_pracy, max_godz_tyg) VALUES (375, to_date('29112008', 'DDMMYYYY'), NULL, 25);
 INSERT INTO NAUCZYCIELE (id_dane_osobowe, data_rozpoczecia_pracy, data_zakonczenia_pracy, max_godz_tyg) VALUES (376, to_date('28042004', 'DDMMYYYY'), to_date('11052007', 'DDMMYYYY'), NULL);
-INSERT INTO NAUCZYCIELE (id_dane_osobowe, data_rozpoczecia_pracy, data_zakonczenia_pracy, max_godz_tyg) VALUES (377, to_date('21102014', 'DDMMYYYY'), NULL, 26);
-INSERT INTO NAUCZYCIELE (id_dane_osobowe, data_rozpoczecia_pracy, data_zakonczenia_pracy, max_godz_tyg) VALUES (378, to_date('09032020', 'DDMMYYYY'), NULL, 12);
-INSERT INTO NAUCZYCIELE (id_dane_osobowe, data_rozpoczecia_pracy, data_zakonczenia_pracy, max_godz_tyg) VALUES (379, to_date('02052016', 'DDMMYYYY'), NULL, 24);
-INSERT INTO NAUCZYCIELE (id_dane_osobowe, data_rozpoczecia_pracy, data_zakonczenia_pracy, max_godz_tyg) VALUES (380, to_date('22012006', 'DDMMYYYY'), NULL, 6);
-INSERT INTO NAUCZYCIELE (id_dane_osobowe, data_rozpoczecia_pracy, data_zakonczenia_pracy, max_godz_tyg) VALUES (381, to_date('20032015', 'DDMMYYYY'), NULL, 5);
+INSERT INTO NAUCZYCIELE (id_dane_osobowe, data_rozpoczecia_pracy, data_zakonczenia_pracy, max_godz_tyg) VALUES (377, to_date('21102014', 'DDMMYYYY'), NULL, 30);
+INSERT INTO NAUCZYCIELE (id_dane_osobowe, data_rozpoczecia_pracy, data_zakonczenia_pracy, max_godz_tyg) VALUES (378, to_date('09032011', 'DDMMYYYY'), to_date('12052015', 'DDMMYYYY'), NULL);
+INSERT INTO NAUCZYCIELE (id_dane_osobowe, data_rozpoczecia_pracy, data_zakonczenia_pracy, max_godz_tyg) VALUES (379, to_date('02052016', 'DDMMYYYY'), NULL, 30);
+INSERT INTO NAUCZYCIELE (id_dane_osobowe, data_rozpoczecia_pracy, data_zakonczenia_pracy, max_godz_tyg) VALUES (380, to_date('22012006', 'DDMMYYYY'), NULL, 30);
+INSERT INTO NAUCZYCIELE (id_dane_osobowe, data_rozpoczecia_pracy, data_zakonczenia_pracy, max_godz_tyg) VALUES (381, to_date('20032014', 'DDMMYYYY'), to_date('13042016', 'DDMMYYYY'), NULL);
 INSERT INTO NAUCZYCIELE (id_dane_osobowe, data_rozpoczecia_pracy, data_zakonczenia_pracy, max_godz_tyg) VALUES (382, to_date('11022016', 'DDMMYYYY'), to_date('09122018', 'DDMMYYYY'), NULL);
-INSERT INTO NAUCZYCIELE (id_dane_osobowe, data_rozpoczecia_pracy, data_zakonczenia_pracy, max_godz_tyg) VALUES (383, to_date('14022020', 'DDMMYYYY'), NULL, 29);
+INSERT INTO NAUCZYCIELE (id_dane_osobowe, data_rozpoczecia_pracy, data_zakonczenia_pracy, max_godz_tyg) VALUES (383, to_date('14022020', 'DDMMYYYY'), NULL, 35);
 INSERT INTO NAUCZYCIELE (id_dane_osobowe, data_rozpoczecia_pracy, data_zakonczenia_pracy, max_godz_tyg) VALUES (384, to_date('26072005', 'DDMMYYYY'), to_date('24022014', 'DDMMYYYY'), NULL);
-INSERT INTO NAUCZYCIELE (id_dane_osobowe, data_rozpoczecia_pracy, data_zakonczenia_pracy, max_godz_tyg) VALUES (385, to_date('03012012', 'DDMMYYYY'), NULL, 14);
-INSERT INTO NAUCZYCIELE (id_dane_osobowe, data_rozpoczecia_pracy, data_zakonczenia_pracy, max_godz_tyg) VALUES (386, to_date('19122007', 'DDMMYYYY'), to_date('13092015', 'DDMMYYYY'), NULL);
-INSERT INTO NAUCZYCIELE (id_dane_osobowe, data_rozpoczecia_pracy, data_zakonczenia_pracy, max_godz_tyg) VALUES (387, to_date('27072016', 'DDMMYYYY'), NULL, 11);
+INSERT INTO NAUCZYCIELE (id_dane_osobowe, data_rozpoczecia_pracy, data_zakonczenia_pracy, max_godz_tyg) VALUES (385, to_date('03012007', 'DDMMYYYY'), to_date('27112012', 'DDMMYYYY'), NULL);
+INSERT INTO NAUCZYCIELE (id_dane_osobowe, data_rozpoczecia_pracy, data_zakonczenia_pracy, max_godz_tyg) VALUES (386, to_date('19122007', 'DDMMYYYY'), NULL, 40);
+INSERT INTO NAUCZYCIELE (id_dane_osobowe, data_rozpoczecia_pracy, data_zakonczenia_pracy, max_godz_tyg) VALUES (387, to_date('27072016', 'DDMMYYYY'), NULL, 35);
 INSERT INTO NAUCZYCIELE (id_dane_osobowe, data_rozpoczecia_pracy, data_zakonczenia_pracy, max_godz_tyg) VALUES (388, to_date('13082013', 'DDMMYYYY'), to_date('15092017', 'DDMMYYYY'), NULL);
 INSERT INTO NAUCZYCIELE (id_dane_osobowe, data_rozpoczecia_pracy, data_zakonczenia_pracy, max_godz_tyg) VALUES (389, to_date('29112009', 'DDMMYYYY'), to_date('14082019', 'DDMMYYYY'), NULL);
-INSERT INTO NAUCZYCIELE (id_dane_osobowe, data_rozpoczecia_pracy, data_zakonczenia_pracy, max_godz_tyg) VALUES (390, to_date('04122012', 'DDMMYYYY'), NULL, 9);
+INSERT INTO NAUCZYCIELE (id_dane_osobowe, data_rozpoczecia_pracy, data_zakonczenia_pracy, max_godz_tyg) VALUES (390, to_date('04122012', 'DDMMYYYY'), NULL, 40);
 INSERT INTO NAUCZYCIELE (id_dane_osobowe, data_rozpoczecia_pracy, data_zakonczenia_pracy, max_godz_tyg) VALUES (391, to_date('17042008', 'DDMMYYYY'), to_date('27042010', 'DDMMYYYY'), NULL);
 INSERT INTO NAUCZYCIELE (id_dane_osobowe, data_rozpoczecia_pracy, data_zakonczenia_pracy, max_godz_tyg) VALUES (392, to_date('02042007', 'DDMMYYYY'), to_date('02072016', 'DDMMYYYY'), NULL);
 INSERT INTO NAUCZYCIELE (id_dane_osobowe, data_rozpoczecia_pracy, data_zakonczenia_pracy, max_godz_tyg) VALUES (393, to_date('05112019', 'DDMMYYYY'), to_date('15062020', 'DDMMYYYY'), NULL);
 INSERT INTO NAUCZYCIELE (id_dane_osobowe, data_rozpoczecia_pracy, data_zakonczenia_pracy, max_godz_tyg) VALUES (394, to_date('30042015', 'DDMMYYYY'), to_date('22122017', 'DDMMYYYY'), NULL);
-INSERT INTO NAUCZYCIELE (id_dane_osobowe, data_rozpoczecia_pracy, data_zakonczenia_pracy, max_godz_tyg) VALUES (395, to_date('13092009', 'DDMMYYYY'), NULL, 14);
+INSERT INTO NAUCZYCIELE (id_dane_osobowe, data_rozpoczecia_pracy, data_zakonczenia_pracy, max_godz_tyg) VALUES (395, to_date('13092009', 'DDMMYYYY'), to_date('22012018', 'DDMMYYYY'), NULL);
 INSERT INTO NAUCZYCIELE (id_dane_osobowe, data_rozpoczecia_pracy, data_zakonczenia_pracy, max_godz_tyg) VALUES (396, to_date('14042008', 'DDMMYYYY'), to_date('10022012', 'DDMMYYYY'), NULL);
-INSERT INTO NAUCZYCIELE (id_dane_osobowe, data_rozpoczecia_pracy, data_zakonczenia_pracy, max_godz_tyg) VALUES (397, to_date('08032013', 'DDMMYYYY'), NULL, 16);
+INSERT INTO NAUCZYCIELE (id_dane_osobowe, data_rozpoczecia_pracy, data_zakonczenia_pracy, max_godz_tyg) VALUES (397, to_date('08032010', 'DDMMYYYY'), to_date('12122014', 'DDMMYYYY'), NULL);
 
 -- przedmioty
 
@@ -1148,6 +1148,7 @@ BEGIN
     --matematyka
     obsadz_nauczyciela(7, 'matematyka', true);
     obsadz_nauczyciela(19, 'matematyka', true);
+    obsadz_nauczyciela(26, 'matematyka', false);
     --polski
     obsadz_nauczyciela(13, 'polski', true);
     obsadz_nauczyciela(10, 'polski', false);
@@ -1156,7 +1157,6 @@ BEGIN
     obsadz_nauczyciela(8, 'historia', false);
     --fizyka
     obsadz_nauczyciela(4, 'fizyka', true);
-    obsadz_nauczyciela(35, 'fizyka', true);
     --angielski
     obsadz_nauczyciela(1, 'angielski', true);
     obsadz_nauczyciela(9, 'angielski', true);
@@ -1165,18 +1165,13 @@ BEGIN
     obsadz_nauczyciela(30, 'wychowanie_fizyczne', false);
     --biologia
     obsadz_nauczyciela(17, 'biologia', true);
-    obsadz_nauczyciela(18, 'biologia', false);
     --chemia
     obsadz_nauczyciela(20, 'chemia', true);
-    obsadz_nauczyciela(21, 'chemia', true);
     --geografia
     obsadz_nauczyciela(23, 'geografia', true);
-    obsadz_nauczyciela(25, 'geografia', false);
     --niemiecki
     obsadz_nauczyciela(27, 'niemiecki', true);
-    obsadz_nauczyciela(8, 'niemiecki', false);
     --informatyka
-    obsadz_nauczyciela(6, 'informatyka', true);
     obsadz_nauczyciela(15, 'informatyka', true);
     
     -- byli nauczyciele
@@ -1186,7 +1181,6 @@ BEGIN
     obsadz_nauczyciela(16, 'historia', false);
     obsadz_nauczyciela(22, 'polski', true);
     obsadz_nauczyciela(24, 'wychowanie_fizyczne', false);
-    obsadz_nauczyciela(26, 'geografia', true);
     obsadz_nauczyciela(28, 'fizyka', true);
     obsadz_nauczyciela(29, 'matematyka', false);
     obsadz_nauczyciela(31, 'niemiecki', true);
@@ -1194,7 +1188,13 @@ BEGIN
     obsadz_nauczyciela(33, 'angielski', true);
     obsadz_nauczyciela(34, 'historia', false);
     obsadz_nauczyciela(36, 'informatyka', false);
-    
+    obsadz_nauczyciela(37, 'polski', false);
+    obsadz_nauczyciela(5, 'fizyka', true);
+    obsadz_nauczyciela(35, 'fizyka', true);
+    obsadz_nauczyciela(18, 'biologia', false);
+    obsadz_nauczyciela(21, 'chemia', true);
+    obsadz_nauczyciela(25, 'geografia', false);
+    obsadz_nauczyciela(6, 'informatyka', true);
 END;
 /
 
