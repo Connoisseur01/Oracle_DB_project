@@ -2526,37 +2526,41 @@ VALUES(to_date('01092021' , 'DDMMYYYY'), to_date('24062022' , 'DDMMYYYY'));
 -- oceny
 
 DECLARE
-	v1 INTEGER; --v_rok_przedmiot integer;
-	v2 INTEGER; --v_Ostatnia_klasa ucznia  integer;
-	v3 DATE; -- v_rozpoczecie_nauki w szkole  date; 
+	v_rok_przedmiot INTEGER;
+	v_Ostatnia_klasa INTEGER;
+	v_rozpoczecie_nauki DATE; 
 
-	d1 DATE; -- data_rozpoczecia roku dla danego przedmiotu
-	d2 DATE; --data zakocnzenia roku dla danego przedmiotu
+	v_data_rozpoczecia DATE;
+	v_data_zakonczenia DATE;
 
 
 BEGIN
 	FOR i IN 1..10050 LOOP
-		SELECT to_number(substr(p.nazwa_przedmiotu, - 1, 1))	, to_number(substr(g.id_klasy, 1, 1))	, g.data_rozpoczecia
-		  INTO v1												, v2									, v3
-		  FROM przedmioty_uczen p_u
-		  LEFT JOIN przedmioty       p ON p.id_przedmiotu = p_u.id_przedmiotu
-		  LEFT JOIN uczniowie        u ON u.id_ucznia = p_u.id_ucznia
-		  LEFT JOIN grupy            g ON g.id_grupy = u.id_grupy
-		 WHERE p_u.id_pary_przedmioty_uczen = i;
+		SELECT to_number(substr(p.nazwa_przedmiotu, - 1, 1)), to_number(substr(g.id_klasy, 1, 1)), g.data_rozpoczecia 
+        INTO v_rok_przedmiot, v_Ostatnia_klasa, v_rozpoczecie_nauki
+		FROM przedmioty_uczen p_u
+		LEFT JOIN przedmioty p ON p.id_przedmiotu = p_u.id_przedmiotu
+		LEFT JOIN uczniowie u ON u.id_ucznia = p_u.id_ucznia
+		LEFT JOIN grupy g ON g.id_grupy = u.id_grupy
+		WHERE p_u.id_pary_przedmioty_uczen = i;
 
 	for n in 1..4 loop
-		IF v1 = n THEN
-			SELECT data_rozpoczecia	, data_zakonczenia
-			  INTO d1				, d2
-			  FROM rok_szkolny
-			 WHERE id_rs = ( SELECT id_rs + n - 1 
-			                  FROM rok_szkolny
-			                 WHERE data_rozpoczecia = v3 );
+		IF v_rok_przedmiot = n THEN
+			SELECT data_rozpoczecia, data_zakonczenia INTO v_data_rozpoczecia, v_data_zakonczenia
+			FROM rok_szkolny
+			WHERE id_rs = (SELECT id_rs + n - 1 
+			                FROM rok_szkolny
+			                WHERE data_rozpoczecia = v_rozpoczecie_nauki);
 
-			FOR j IN 1..5 LOOP -- kazdy uczen ma po 5 ocen z przedmiotu BO TAK
-				INSERT INTO oceny	(id_pary_przedmioty_uczen	, ocena									, timestamp_oceny) 
-				VALUES 				(i							, round(dbms_random.value(2, 12)) / 2	, ( to_date(d1, 'DD/MM/YY HH24:MI:SS') + dbms_random.value(0, to_date(d2, 'DD/MM/YY HH24:MI:SS') -
-																											to_date(d1, 'DD/MM/YY HH24:MI:SS')) ));
+			FOR j IN 1..5 LOOP
+				INSERT INTO oceny (id_pary_przedmioty_uczen, ocena, timestamp_oceny) 
+				    VALUES 	(
+                        i,
+                        round(dbms_random.value(2, 12)) / 2,
+                        (to_date(v_data_rozpoczecia, 'DD/MM/YY HH24:MI:SS') 
+                        + dbms_random.value(0, to_date(v_data_zakonczenia, 'DD/MM/YY HH24:MI:SS') 
+                        - to_date(v_data_rozpoczecia, 'DD/MM/YY HH24:MI:SS')))
+                        );
 			END LOOP;
 		END IF;
 		END LOOP;
