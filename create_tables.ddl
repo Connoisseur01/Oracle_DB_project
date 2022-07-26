@@ -11,6 +11,7 @@ DROP TABLE przedmioty_klasy CASCADE CONSTRAINTS;
 DROP TABLE przedmioty_uczen CASCADE CONSTRAINTS;
 DROP TABLE przydzielone_godziny CASCADE CONSTRAINTS; 
 DROP TABLE uczniowie CASCADE CONSTRAINTS; 
+DROP TABLE rok_szkolny CASCADE CONSTRAINTS;
 
 -- create tables with primary keys --
 
@@ -121,6 +122,14 @@ CREATE TABLE uczniowie (
 );
 
 ALTER TABLE uczniowie ADD CONSTRAINT uczniowie_pk PRIMARY KEY ( id_ucznia );
+
+CREATE TABLE rok_szkolny (
+    id_rs                   INTEGER GENERATED ALWAYS AS IDENTITY NOT NULL,
+    data_rozpoczecia        DATE NOT NULL , 
+    data_zakonczenia        DATE
+);
+
+ALTER TABLE rok_szkolny ADD CONSTRAINT rok_szkolny_pk PRIMARY KEY ( id_rs );
 
 -- add foraign keys --
 
