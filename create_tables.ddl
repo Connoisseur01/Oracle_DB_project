@@ -1,17 +1,30 @@
 -- drop existing tables --
 
-DROP TABLE dane_osobowe CASCADE CONSTRAINTS;
-DROP TABLE grupy CASCADE CONSTRAINTS;
-DROP TABLE klasy CASCADE CONSTRAINTS;
-DROP TABLE nauczyciel_przedmiot CASCADE CONSTRAINTS;
-DROP TABLE nauczyciele CASCADE CONSTRAINTS;
-DROP TABLE oceny CASCADE CONSTRAINTS; 
-DROP TABLE przedmioty CASCADE CONSTRAINTS;
-DROP TABLE przedmioty_klasy CASCADE CONSTRAINTS;
-DROP TABLE przedmioty_uczen CASCADE CONSTRAINTS;
-DROP TABLE przydzielone_godziny CASCADE CONSTRAINTS;
-DROP TABLE uczniowie CASCADE CONSTRAINTS; 
-DROP TABLE rok_szkolny CASCADE CONSTRAINTS;
+DECLARE
+    PROCEDURE drop_if_exists (table_name VARCHAR2) IS
+        BEGIN
+            EXECUTE IMMEDIATE 'DROP TABLE ' || table_name || ' CASCADE CONSTRAINTS';
+        EXCEPTION
+            WHEN OTHERS THEN
+                IF SQLCODE != -942 THEN
+                RAISE;
+                END IF;
+        END;
+BEGIN
+    drop_if_exists ('dane_osobowe');
+    drop_if_exists ('grupy');
+    drop_if_exists ('klasy');
+    drop_if_exists ('nauczyciel_przedmiot');
+    drop_if_exists ('nauczyciele');
+    drop_if_exists ('oceny'); 
+    drop_if_exists ('przedmioty');
+    drop_if_exists ('przedmioty_klasy');
+    drop_if_exists ('przedmioty_uczen');
+    drop_if_exists ('przydzielone_godziny');
+    drop_if_exists ('uczniowie');
+    drop_if_exists ('rok_szkolny');
+END;
+/
 
 -- create tables --
 
