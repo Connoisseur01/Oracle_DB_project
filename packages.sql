@@ -115,19 +115,20 @@ CREATE OR REPLACE PACKAGE BODY populate AS
     
     PROCEDURE pop_przedmiot_uczen IS 
             c1 SYS_REFCURSOR;
-	
+
             id_uczen INTEGER;
             id_przedmiot INTEGER;
             id_klasy CHAR(2); 
-            
-            v_polecenie VARCHAR2(200) := ' as stala,   p.id_przedmiotu 
+
+            v_polecenie VARCHAR2(500) := ' as stala,   p.id_przedmiotu 
                                         FROM przedmioty_klasy pk
-                                        RIGHT JOIN przedmioty p 	ON p.id_przedmiotu = pk.id_przedmiotu
+                                        RIGHT JOIN przedmioty p     ON p.id_przedmiotu = pk.id_przedmiotu
                                         WHERE id_klasy ';
             vsql VARCHAR2(2000);
-        BEGIN 
+        BEGIN
+
             FOR i IN 1..360 LOOP
-	
+
                 SELECT id_klasy INTO id_klasy
                 FROM grupy  
                 JOIN uczniowie USING (id_grupy)
@@ -135,39 +136,40 @@ CREATE OR REPLACE PACKAGE BODY populate AS
 
 
                 IF LPAD(id_klasy,1)=1 THEN
-                vsql := 'SELECT ' ||i || '= ''' || id_klasy || '''  ';
+                vsql := 'SELECT ' ||i ||v_polecenie|| '= ''' || id_klasy || '''  ';
 
                 ELSIF LPAD(id_klasy,1)=2 THEN 
-                vsql := 'SELECT ' || i || 'in  (''' || id_klasy || ''', ''' ||
+                vsql := 'SELECT ' || i ||v_polecenie|| 'in  (''' || id_klasy || ''', ''' ||
                                     to_char(TO_NUMBER(SUBSTR(id_klasy,1,1))-1 || SUBSTR(id_klasy,2,1)) || ''') '; 
 
                 ELSIF LPAD(id_klasy,1)=3 THEN
-                vsql := 'SELECT ' || i || 'in  (''' || id_klasy || ''', ''' ||
+                vsql := 'SELECT ' || i ||v_polecenie|| 'in  (''' || id_klasy || ''', ''' ||
                                     TO_CHAR(TO_NUMBER(SUBSTR(id_klasy,1,1))-1 || SUBSTR(id_klasy,2,1)) || ''', ''' ||
                                     TO_CHAR(TO_NUMBER(SUBSTR(id_klasy,1,1))-2 || SUBSTR(id_klasy,2,1)) || ''') '; 
-                        
+
                 ELSIF LPAD(id_klasy,1)=4 THEN
-                vsql := 'SELECT ' || i || 'in  (''' || id_klasy || ''', ''' ||
+                vsql := 'SELECT ' || i ||v_polecenie|| 'in  (''' || id_klasy || ''', ''' ||
                                     TO_CHAR(TO_NUMBER(SUBSTR(id_klasy,1,1))-1 || SUBSTR(id_klasy,2,1)) || ''',''' ||
                                     TO_CHAR(to_number(SUBSTR(id_klasy,1,1))-2 || SUBSTR(id_klasy,2,1)) || ''',''' ||
                                     TO_CHAR(to_number(SUBSTR(id_klasy,1,1))-3 || SUBSTR(id_klasy,2,1)) ||  ''') '; 
 
-                END IF;	
+                END IF;    
                 OPEN c1 FOR vsql; 
 
                 LOOP
                     FETCH c1 INTO
                         id_uczen, id_przedmiot;
                     EXIT WHEN c1%notfound;
-                    
+
                     INSERT INTO przedmioty_uczen (id_ucznia, id_przedmiotu) 
                     VALUES (id_uczen, id_przedmiot);
-                    
+
                 END LOOP;
 
-		        CLOSE c1;
-	        END LOOP;
+                CLOSE c1;
+            END LOOP;
         END;
+
 
     PROCEDURE pop_oceny IS 
             v_rok_przedmiot 		INTEGER;
