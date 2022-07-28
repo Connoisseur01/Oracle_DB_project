@@ -1,3 +1,16 @@
+-- wylacz klucze obce
+
+BEGIN
+  FOR c IN
+    (SELECT constraint_name, table_name
+   FROM user_constraints
+   WHERE status = 'ENABLED' AND constraint_type = 'R')
+  LOOP
+    EXECUTE IMMEDIATE 'ALTER TABLE ' || c.table_name || ' DISABLE CONSTRAINT ' || c.constraint_name;
+  END LOOP;
+END;
+/
+
 -- dane osobowe 
 
 INSERT INTO dane_osobowe (imie, nazwisko, numer_telefonu, email, adres_zamieszkania, data_urodzenia, pesel) 
@@ -1359,6 +1372,9 @@ END;
 
 --przedmioty_klasy
 
+host sqlldr userid = szkola/szkola@XEPDB1 control = 'C:\Users\a870643\Oracle_DB_project\csv\przedmioty_klasy.ctl' log = track.log;
+
+/*
 
 DECLARE 
     id INTEGER;
@@ -1922,7 +1938,7 @@ VALUES ('4d', id, 4);
 
 END;
 /
-
+*/
 --grupy
 
 INSERT INTO GRUPY (id_klasy, data_rozpoczecia, data_zakonczenia, id_wychowawcy) 
@@ -2542,7 +2558,7 @@ BEGIN
 		LEFT JOIN przedmioty p ON p.id_przedmiotu = p_u.id_przedmiotu
 		LEFT JOIN uczniowie u ON u.id_ucznia = p_u.id_ucznia
 		LEFT JOIN grupy g ON g.id_grupy = u.id_grupy
-		WHERE p_u.id_pary_przedmioty_uczen = i;
+		WHERE p_u.id_przedmioty_uczen = i;
 
 	for n in 1..4 loop
 		IF v_rok_przedmiot = n THEN
@@ -2553,7 +2569,7 @@ BEGIN
 			                WHERE data_rozpoczecia = v_rozpoczecie_nauki);
 
 			FOR j IN 1..5 LOOP
-				INSERT INTO oceny (id_pary_przedmioty_uczen, ocena, timestamp_oceny) 
+				INSERT INTO oceny (id_przedmioty_uczen, ocena, timestamp_oceny) 
 				    VALUES 	(
                         i,
                         round(dbms_random.value(2, 12)) / 2,
@@ -2565,4 +2581,18 @@ BEGIN
 		END IF;
 		END LOOP;
 	END LOOP;
-END; 
+END;
+/
+
+-- włącz klucze obce
+
+BEGIN
+  FOR c IN
+    (SELECT constraint_name, table_name
+   FROM user_constraints
+   WHERE status = 'DISABLED' AND constraint_type = 'R')
+  LOOP
+    EXECUTE IMMEDIATE 'ALTER TABLE ' || c.table_name || ' ENABLE CONSTRAINT ' || c.constraint_name;
+  END LOOP;
+END;
+/
