@@ -144,7 +144,7 @@ CREATE TABLE przedmioty_klasy (
 
 CREATE TABLE przydzielone_godziny (
     id_przydzielonych_godzin    INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    id_nauczyciel_przedmiot     INTEGER NOT NULL,
+    id_nauczyciel_przedmiot     INTEGER,
     id_przedmioty_klasy         INTEGER NOT NULL,
     ilosc_przydzielonych_godzin INTEGER NOT NULL,
 
