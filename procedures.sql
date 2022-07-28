@@ -1,3 +1,5 @@
+-- pakiet do populacji tablic
+
 CREATE OR REPLACE PACKAGE populate AS
     PROCEDURE pop_przedmioty;
     PROCEDURE pop_klasy;
