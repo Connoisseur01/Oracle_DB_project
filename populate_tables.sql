@@ -364,6 +364,14 @@ EXECUTE populate.przydziel_godz(15, 'informatyka', '1d');
 
 EXECUTE populate.pop_przedmiot_uczen;
 
+-- oceny
+
+EXECUTE populate.pop_oceny;
+
+-- rok-szkolny
+
+host sqlldr userid = szkola/szkola@XEPDB1 control = 'ctrl_files\rok_szkolny.ctl' log = track.log;
+
 -- wlacz klucze obce
 
 BEGIN
