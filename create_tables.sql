@@ -36,9 +36,11 @@ CREATE TABLE dane_osobowe (
     email  		       VARCHAR2(50) NOT NULL,
     adres_zamieszkania VARCHAR2(255),
     data_urodzenia     DATE,
-    pesel              VARCHAR2(11),
+    pesel              VARCHAR2(11) NOT NULL,
+	rola               VARCHAR2(3), 
     CONSTRAINT sprawdz_telefon CHECK (REGEXP_LIKE(numer_telefonu, '(^[+][[:digit:]]{1,4})?[[:digit:]]{9,}')),
-    CONSTRAINT sprawdz_mail CHECK (REGEXP_LIKE(email, '^([a-zA-Z0-9_.-]*)@([a-zA-Z0-9_.-]*).([a-zA-Z]{2,5})$'))
+    CONSTRAINT sprawdz_mail CHECK (REGEXP_LIKE(email, '^([a-zA-Z0-9_.-]*)@([a-zA-Z0-9_.-]*).([a-zA-Z]{2,5})$')),
+	CONSTRAINT sprawdz_role CHECK (rola in ('k', 'n', 'ku', 'kn', 'kun'))
 );
 
 CREATE TABLE nauczyciele (
@@ -102,6 +104,7 @@ CREATE TABLE przedmioty_uczen (
     id_przedmioty_uczen INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     id_ucznia                INTEGER NOT NULL,
     id_przedmiotu            INTEGER NOT NULL,
+	srednia_ocen             NUMBER(3,2),
     ocena_koncowa            INTEGER	,
 	CONSTRAINT zakres_oceny_koncowej CHECK (ocena_koncowa IN (1,2,3,4,5,6)),
 
