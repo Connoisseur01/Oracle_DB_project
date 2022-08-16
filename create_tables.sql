@@ -107,7 +107,6 @@ CREATE TABLE przedmioty_uczen (
 	srednia_ocen             NUMBER(3,2),
     ocena_koncowa            INTEGER	,
 	CONSTRAINT zakres_oceny_koncowej CHECK (ocena_koncowa IN (1,2,3,4,5,6)),
-
     CONSTRAINT przedmioty_uczen_przedmioty_fk FOREIGN KEY ( id_przedmiotu )
         REFERENCES przedmioty ( id_przedmiotu ),
     CONSTRAINT przedmioty_uczen_uczen_fk FOREIGN KEY ( id_ucznia )
