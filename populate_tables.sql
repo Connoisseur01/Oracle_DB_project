@@ -1,3 +1,10 @@
+-- define user variables
+
+DEFINE d_user_id = '&user_id'
+DEFINE d_pass = '&password'
+DEFINE d_network_alias = '&network_alias'
+DEFINE d_sep = ','
+
 -- wylacz klucze obce
 
 BEGIN
@@ -14,11 +21,11 @@ END;
 
 -- dane osobowe 
 
-host sqlldr userid = szkola/szkola@XEPDB1 control = 'ctrl_files\dane_osobowe.ctl' log = track.log;
+host sqlldr userid = &d_user_id/&d_pass@&d_network_alias control = 'ctrl_files\dane_osobowe.ctl' log = track.log;
 
 -- nauczyciele
 
-host sqlldr userid = szkola/szkola@XEPDB1 control = 'ctrl_files\nauczyciele.ctl' log = track.log;
+host sqlldr userid = &d_user_id/&d_pass@&d_network_alias control = 'ctrl_files\nauczyciele.ctl' log = track.log;
 
 -- przedmioty
 
@@ -30,11 +37,11 @@ EXECUTE populate.pop_klasy;
 
 --przedmioty_klasy
 
-host sqlldr userid = szkola/szkola@XEPDB1 control = 'ctrl_files\przedmioty_klasy.ctl' log = track.log;
+host sqlldr userid = &d_user_id/&d_pass@&d_network_alias control = 'ctrl_files\przedmioty_klasy.ctl' log = track.log;
 
 --grupy
 
-host sqlldr userid = szkola/szkola@XEPDB1 control = 'ctrl_files\grupy.ctl' log = track.log;
+host sqlldr userid = &d_user_id/&d_pass@&d_network_alias control = 'ctrl_files\grupy.ctl' log = track.log;
 
 --uczniowie
 
@@ -366,7 +373,7 @@ EXECUTE populate.pop_przedmiot_uczen;
 
 -- rok-szkolny
 
-host sqlldr userid = szkola/szkola@XEPDB1 control = 'ctrl_files\rok_szkolny.ctl' log = track.log;
+host sqlldr userid = &d_user_id/&d_pass@&d_network_alias control = 'ctrl_files\rok_szkolny.ctl' log = track.log;
 
 -- oceny
 
