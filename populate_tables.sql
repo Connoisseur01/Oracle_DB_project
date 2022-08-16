@@ -378,6 +378,8 @@ host sqlldr userid = &d_user_id/&d_pass@&d_network_alias control = 'ctrl_files\r
 -- oceny
 
 EXECUTE populate.pop_oceny;
+EXECUTE populate.pop_srednia_ocen;
+EXECUTE populate.pop_ocena_koncowa;
 
 -- wlacz klucze obce
 
