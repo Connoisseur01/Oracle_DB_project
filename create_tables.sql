@@ -33,11 +33,11 @@ CREATE TABLE dane_osobowe (
     imie               VARCHAR2(60) NOT NULL,
     nazwisko           VARCHAR2(120) NOT NULL,
     numer_telefonu     VARCHAR2(20) NOT NULL,
-    email  		       VARCHAR2(50) NOT NULL,
+    email  	       VARCHAR2(50) NOT NULL,
     adres_zamieszkania VARCHAR2(255),
     data_urodzenia     DATE,
     pesel              VARCHAR2(11) NOT NULL,
-	rola               VARCHAR2(3), 
+    rola               VARCHAR2(3)  NOT NULL, 
     CONSTRAINT sprawdz_telefon CHECK (REGEXP_LIKE(numer_telefonu, '(^[+][[:digit:]]{1,4})?[[:digit:]]{9,}')),
     CONSTRAINT sprawdz_mail CHECK (REGEXP_LIKE(email, '^([a-zA-Z0-9_.-]*)@([a-zA-Z0-9_.-]*).([a-zA-Z]{2,5})$')),
 	CONSTRAINT sprawdz_role CHECK (rola in ('k', 'n', 'ku', 'kn', 'kun'))
@@ -68,26 +68,25 @@ CREATE TABLE przedmioty (
 CREATE TABLE grupy (
     id_grupy         INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     id_klasy         VARCHAR2(2 CHAR) NOT NULL,
-    data_rozpoczecia DATE NOT NULL,
+    data_rozpoczecia DATE             NOT NULL,
     data_zakonczenia DATE,
-    id_wychowawcy 	 INTEGER NOT NULL,
+    id_wychowawcy    INTEGER          NOT NULL,
     CONSTRAINT grupy_klasy_fk FOREIGN KEY ( id_klasy ) 
         REFERENCES klasy ( id_klasy ),
     CONSTRAINT grupy_nauczyciele_fk FOREIGN KEY ( id_wychowawcy ) 
-        REFERENCES nauczyciele ( id_nauczyciela )
+        REFERENCES nauczyciele ( id_nauczyciela ) 
 );
 
 CREATE TABLE uczniowie (
     id_ucznia              INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     id_dane_osobowe        INTEGER NOT NULL,
-    data_rozpoczecia_nauki DATE NOT NULL,
+    data_rozpoczecia_nauki DATE    NOT NULL,
     data_zakonczenia_nauki DATE,
     id_grupy               INTEGER NOT NULL,
     CONSTRAINT uczniowie_grupy_fk FOREIGN KEY ( id_grupy )
         REFERENCES grupy ( id_grupy ),
     CONSTRAINT uczniowie_dane_osobowe_fk FOREIGN KEY ( id_dane_osobowe )
-        REFERENCES dane_osobowe ( id_dane_osobowe )
-		ON DELETE CASCADE
+        REFERENCES dane_osobowe ( id_dane_osobowe ) ON DELETE CASCADE
 );
 
 CREATE TABLE nauczyciel_przedmiot (
@@ -95,7 +94,7 @@ CREATE TABLE nauczyciel_przedmiot (
     id_nauczyciela          INTEGER NOT NULL,
     id_przedmiotu           INTEGER NOT NULL,
     CONSTRAINT naucz_przedmiot_naucz_fk FOREIGN KEY ( id_nauczyciela ) 
-        REFERENCES nauczyciele ( id_nauczyciela ),
+        REFERENCES nauczyciele ( id_nauczyciela ) ON DELETE CASCADE,
     CONSTRAINT naucz_przedmiot_przedmioty_fk FOREIGN KEY ( id_przedmiotu ) 
         REFERENCES przedmioty ( id_przedmiotu )
 );
@@ -110,7 +109,7 @@ CREATE TABLE przedmioty_uczen (
     CONSTRAINT przedmioty_uczen_przedmioty_fk FOREIGN KEY ( id_przedmiotu )
         REFERENCES przedmioty ( id_przedmiotu ),
     CONSTRAINT przedmioty_uczen_uczen_fk FOREIGN KEY ( id_ucznia )
-        REFERENCES uczniowie ( id_ucznia )
+        REFERENCES uczniowie ( id_ucznia ) ON DELETE CASCADE
 );
 
 CREATE TABLE oceny (
@@ -120,7 +119,7 @@ CREATE TABLE oceny (
     timestamp_oceny          TIMESTAMP NOT NULL,
 	CONSTRAINT zakres_oceny CHECK (ocena IN (1,1.5,2,2.5,3,3.5,4,4.5,5,5.5,6)),
     CONSTRAINT oceny_przedmioty_uczen_fk FOREIGN KEY ( id_przedmioty_uczen ) 
-        REFERENCES przedmioty_uczen ( id_przedmioty_uczen )
+        REFERENCES przedmioty_uczen ( id_przedmioty_uczen ) ON DELETE CASCADE
 );
 
 CREATE TABLE przedmioty_klasy (
