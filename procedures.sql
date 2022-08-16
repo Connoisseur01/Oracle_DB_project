@@ -8,6 +8,8 @@ CREATE OR REPLACE PACKAGE populate AS
     PROCEDURE przydziel_godz (id_naucz INTEGER, przedmiot VARCHAR2, id_klas VARCHAR2);
     PROCEDURE pop_przedmiot_uczen;
     PROCEDURE pop_oceny;
+    PROCEDURE pop_srednia_ocen;
+    PROCEDURE pop_ocena_koncowa;
 END populate;
 /
 CREATE OR REPLACE PACKAGE BODY populate AS
@@ -215,5 +217,29 @@ CREATE OR REPLACE PACKAGE BODY populate AS
                 END LOOP;
             END LOOP;
         END;
+     
+     
+    PROCEDURE pop_srednia_ocen IS
+	    BEGIN
+	        EXECUTE IMMEDIATE
+		    'UPDATE przedmioty_uczen pu
+		        SET
+			    srednia_ocen = ( SELECT AVG(ocena)
+			                     FROM oceny o
+			                     WHERE o.id_przedmioty_uczen = pu.id_przedmioty_uczen )';
+	    END;
+        
+     
+     PROCEDURE pop_ocena_koncowa IS
+	     BEGIN
+	        EXECUTE IMMEDIATE
+		    'UPDATE przedmioty_uczen pu
+		        SET
+			    ocena_koncowa = ( SELECT AVG(ocena)
+			                     FROM oceny o
+			                     WHERE o.id_przedmioty_uczen = pu.id_przedmioty_uczen )';
+	    END;
+        
+        
 END populate;
 /
