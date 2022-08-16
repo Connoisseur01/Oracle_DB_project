@@ -182,6 +182,7 @@ CREATE OR REPLACE PACKAGE BODY populate AS
             v_data_zakonczenia 		DATE;
 
         BEGIN
+        dbms_random.seed(11);
             FOR i IN 1..10050 LOOP
                 SELECT 	to_number(substr(p.nazwa_przedmiotu, - 1, 1))	, to_number(substr(g.id_klasy, 1, 1))	, g.data_rozpoczecia 
                 INTO 	v_rok_przedmiot									, v_ostatnia_klasa						, v_rozpoczecie_nauki
