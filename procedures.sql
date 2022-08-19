@@ -1002,7 +1002,7 @@ CREATE OR REPLACE FUNCTION policz_godziny_nauczyciela(in_nauczyciel INTEGER) RET
         WHERE id_nauczyciel_przedmiot IN (SELECT id_nauczyciel_przedmiot
                                         FROM nauczyciel_przedmiot
                                         WHERE id_nauczyciela = :nauczyciel)'
-        USING in_nauczyciel INTO ilosc_godz;
+        INTO ilosc_godz USING in_nauczyciel ;
         RETURN ilosc_godz;
     END;
 /
@@ -1017,13 +1017,13 @@ CREATE OR REPLACE PROCEDURE przydziel_godziny (in_nauczyciel INTEGER, in_przedmi
         'SELECT id_przedmioty_klasy, ilosc_godzin_przedmiotu 
         FROM przedmioty_klasy 
         WHERE id_klasy = :klasa AND id_przedmiotu IN (SELECT id_przedmiotu FROM przedmioty WHERE nazwa_przedmiotu LIKE '':p'')'
-        USING in_klasa, in_przedmiot || '%' INTO przedmiot_klasa, ilosc_godzin;
+        INTO przedmiot_klasa, ilosc_godzin USING in_klasa, in_przedmiot || '%';
 
         EXECUTE IMMEDIATE
         'SELECT max_godz_tyg
         FROM nauczyciele
         WHERE id_nauczyciela = :nauczyciel'
-        USING in_nauczyciel INTO max_godz;
+        INTO max_godz USING in_nauczyciel;
 
         IF max_godz < (ilosc_godzin + policz_godziny_nauczyciela(in_nauczyciel)) THEN
             RAISE przekroczono_max_godz;
@@ -1055,7 +1055,7 @@ CREATE OR REPLACE PROCEDURE usun_przedmiot_nauczyciela (in_nauczyciel INTEGER, i
         'SELECT COUNT(*) into v_count
         FROM nauczyciel_przedmiot
         WHERE id_nauczyciela = in_nauczyciel AND przedmiot LIKE '':p'''
-        USING in_przedmiot || '%' INTO check_count;  
+        INTO check_count USING in_przedmiot || '%';  
 
         IF  check_count = 0 THEN
             RAISE brak_danych;
@@ -1083,22 +1083,25 @@ CREATE OR REPLACE PROCEDURE usun_przedmiot_nauczyciela (in_nauczyciel INTEGER, i
 CREATE OR REPLACE PROCEDURE usun_przydzielone_godz (in_przedmiot VARCHAR2, in_klasa VARCHAR2) AS
         przedmiot_klasa INTEGER;
         ilosc_godzin INTEGER;
-        input CHAR;
         nauczyciel_przedmiot INTEGER;
     BEGIN
-        SELECT id_przedmioty_klasy INTO przedmiot_klasa
+        EXECUTE IMMEDIATE
+        'SELECT id_przedmioty_klasy
         FROM przedmioty_klasy 
-        WHERE id_klasy = in_klasa AND id_przedmiotu = (SELECT id_przedmiotu FROM przedmioty WHERE nazwa_przedmiotu = in_przedmiot);
+        WHERE id_klasy = :klasa AND id_przedmiotu = (SELECT id_przedmiotu FROM przedmioty WHERE nazwa_przedmiotu = :przedmiot)'
+        INTO przedmiot_klasa USING in_klasa, in_przedmiot;
         
-        SELECT ilosc_przydzielonych_godzin INTO ilosc_godzin
+        EXECUTE IMMEDIATE
+        'SELECT ilosc_przydzielonych_godzin
         FROM przydzielone_godziny
-        WHERE id_przedmioty_klasy = przedmiot_klasa;
+        WHERE id_przedmioty_klasy = :przedmiot_klasa'
+        INTO ilosc_godzin USING przedmiot_klasa;
 
-            EXECUTE IMMEDIATE
-            'UPDATE przydzielone_godziny
-            SET id_nauczyciel_przedmiot = NULL
-            WHERE id_przedmioty_klasy = :przedmiot_klasa'
-            USING przedmiot_klasa;
+        EXECUTE IMMEDIATE
+        'UPDATE przydzielone_godziny
+        SET id_nauczyciel_przedmiot = NULL
+        WHERE id_przedmioty_klasy = :przedmiot_klasa'
+        USING przedmiot_klasa;
 
     EXCEPTION
         WHEN NO_DATA_FOUND THEN
@@ -1115,17 +1118,21 @@ CREATE OR REPLACE PROCEDURE zakoncz_prace (in_nauczyciel INTEGER, in_data_zakonc
         nauczyciel_jest_wychowawca EXCEPTION;
         grupa INTEGER := -1;
     BEGIN
-        SELECT data_rozpoczecia_pracy INTO data_rozpoczecia
+        EXECUTE IMMEDIATE
+        'SELECT data_rozpoczecia_pracy INTO data_rozpoczecia
         FROM nauczyciele 
-        WHERE id_nauczyciela = in_nauczyciel;
+        WHERE id_nauczyciela = :nauczyciel'
+        INTO data_rozpoczecia USING in_nauczyciel;
 
         IF in_data_zakonczenia <  data_rozpoczecia THEN
             RAISE niepoprawna_data;
         END IF;
 
-        SELECT id_grupy INTO grupa
+        EXECUTE IMMEDIATE
+        'SELECT id_grupy INTO grupa
         FROM grupy
-        WHERE id_wychowawcy = in_nauczyciel AND data_zakonczenia > SYSDATE;
+        WHERE id_wychowawcy = :nauczyciel AND data_zakonczenia > SYSDATE'
+        INTO grupa USING in_nauczyciel;
 
         IF grupa <> -1 THEN
             RAISE nauczyciel_jest_wychowawca;
@@ -1163,7 +1170,7 @@ CREATE OR REPLACE PROCEDURE zmien_max_godz (in_nauczyciel INTEGER, in_max_godz I
         nieprawidlowe_godziny EXCEPTION;
         nauczyciel_nie_istnieje EXCEPTION;
     BEGIN
-        IF max_godz < policz_godziny_nauczyciela(in_nauczyciel) THEN
+        IF in_max_godz < policz_godziny_nauczyciela(in_nauczyciel) THEN
             RAISE nieprawidlowe_godziny;
         END IF;
 
