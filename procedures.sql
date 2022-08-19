@@ -316,7 +316,7 @@ CREATE OR REPLACE PROCEDURE proc_wpisanie_oceny (in_pesel INTEGER, in_nazwa_prze
                               WHERE id_przedmioty_uczen = '||v_id_przedmioty_uczen|| ')
                 WHERE id_przedmioty_uczen = '||v_id_przedmioty_uczen ;  
     END;
-
+/
 --wpisanie oceny koncowej 
 
 CREATE OR REPLACE PROCEDURE proc_wpisanie_oceny_koncowej (in_pesel INTEGER, in_nazwa_przedmiotu VARCHAR2, in_ocena INTEGER) IS
@@ -361,8 +361,8 @@ CREATE OR REPLACE PROCEDURE proc_wpisanie_oceny_koncowej (in_pesel INTEGER, in_n
             JOIN przedmioty       		p  ON p.id_przedmiotu = pu.id_przedmiotu
             WHERE substr(nazwa_przedmiotu, length(nazwa_przedmiotu), 1) = substr(g.id_klasy, 1, 1) --zeby znaleźć przedmiot tylko z obecnej klasy 
             AND pesel = in_pesel
-            AND rola LIKE '%u%'
-            AND nazwa_przedmiotu = ( lower(in_nazwa_przedmiotu) || '_' || substr(g.id_klasy, 1, 1) )' -- żeby nie musiec wpisywac numerka w nazwie
+            AND rola LIKE ''%u%''
+            AND nazwa_przedmiotu = ( lower('||in_nazwa_przedmiotu||')||''_''|| substr(g.id_klasy, 1, 1) )' -- żeby nie musiec wpisywac numerka w nazwie
             INTO  check_przedmiot     , v_id_przedmioty_uczen;
 			
         EXCEPTION
@@ -633,6 +633,7 @@ PROCEDURE proc_niezdanie IS
         END LOOP;
     END;
 END po_koncu_roku;
+/
 
 CREATE OR REPLACE PROCEDURE proc_dodaj_osobe 
     (
@@ -715,8 +716,7 @@ CREATE OR REPLACE PROCEDURE proc_dodaj_osobe
         END IF;
 
     END;
-
-
+/
 
 CREATE OR REPLACE PROCEDURE proc_aktual_dane_osob (in_pesel INTEGER, in_kolumna VARCHAR2, in_aktualizacja VARCHAR2) IS
         check_pesel     INTEGER; 
@@ -761,7 +761,7 @@ CREATE OR REPLACE PROCEDURE proc_aktual_dane_osob (in_pesel INTEGER, in_kolumna 
                 THEN dbms_output.put_line('Inny blad - ' || sqlcode || ' : ' || sqlerrm);
     END;
 END;
-
+/
 
 CREATE OR REPLACE PROCEDURE proc_usun_dane_osob (in_pesel INTEGER) IS
         check_pesel INTEGER;
@@ -783,6 +783,7 @@ CREATE OR REPLACE PROCEDURE proc_usun_dane_osob (in_pesel INTEGER) IS
         WHERE pesel = ' || in_pesel;
         dbms_output.put_line('Wszystkie dane osoby o peselu: ' || in_pesel || ' zostaly usuniete z bazy.');
         END;
+/
 
 CREATE OR REPLACE PROCEDURE proc_aktual_data_zakonczenia_uczen (in_pesel INTEGER, in_data_zakonczenia DATE) 
     IS
@@ -820,7 +821,7 @@ CREATE OR REPLACE PROCEDURE proc_aktual_data_zakonczenia_uczen (in_pesel INTEGER
         
         dbms_output.put_line('Uczniowi o peselu: ' || in_pesel || ' wpisano datę zakończenia nauki: ' || in_data_zakonczenia || '.');
     END;
-
+/
 
 CREATE OR REPLACE PROCEDURE proc_zmiana_kierunku (in_pesel INTEGER, in_nowy_kierunek VARCHAR2) IS
         check_data_zakonczenia  DATE;
@@ -889,7 +890,7 @@ CREATE OR REPLACE PROCEDURE proc_zmiana_kierunku (in_pesel INTEGER, in_nowy_kier
         CLOSE c1;
 
     END;
-
+/
 -- nauczyciele
 
 CREATE OR REPLACE PROCEDURE proc_zmiana_wychowawcy (in_id_klasy VARCHAR2, in_id_wychowawcy INTEGER) IS
@@ -957,6 +958,7 @@ CREATE OR REPLACE PROCEDURE proc_zmiana_wychowawcy (in_id_klasy VARCHAR2, in_id_
                 
         dbms_output.put_line('Wpisano nauczyciela o id: '||in_id_wychowawcy||' jako wychowawce klasy '||lower(in_id_klasy)||'. ');
     END;
+/
 
     CREATE OR REPLACE PROCEDURE obsadz_nauczyciela (nauczyciel INTEGER, przedmiot VARCHAR2, rozszerzenie BOOLEAN) AS 
             id INTEGER;
@@ -987,6 +989,7 @@ CREATE OR REPLACE PROCEDURE proc_zmiana_wychowawcy (in_id_klasy VARCHAR2, in_id_
             WHEN OTHERS THEN
                 RAISE;
         END;
+/
 
 CREATE OR REPLACE FUNCTION policz_godziny_nauczyciela(in_nauczyciel INTEGER) RETURN INTEGER AS
         ilosc_godz INTEGER;
@@ -998,6 +1001,7 @@ CREATE OR REPLACE FUNCTION policz_godziny_nauczyciela(in_nauczyciel INTEGER) RET
                                         WHERE id_nauczyciela = in_nauczyciel);
         RETURN ilosc_godz;
     END;
+/
 
 CREATE OR REPLACE PROCEDURE przydziel_godziny (in_nauczyciel INTEGER, in_przedmiot VARCHAR2, in_klasa VARCHAR2) AS
         przedmiot_klasa INTEGER;
@@ -1033,6 +1037,7 @@ CREATE OR REPLACE PROCEDURE przydziel_godziny (in_nauczyciel INTEGER, in_przedmi
         WHEN OTHERS THEN
             RAISE;
     END; 
+/
 
 CREATE OR REPLACE PROCEDURE usun_przedmiot_nauczyciela (in_nauczyciel INTEGER, in_przedmiot VARCHAR2, in_rozszerzenie BOOLEAN) AS
         v_count INTEGER;
@@ -1040,7 +1045,7 @@ CREATE OR REPLACE PROCEDURE usun_przedmiot_nauczyciela (in_nauczyciel INTEGER, i
     BEGIN
         SELECT COUNT(*) into v_count
         FROM nauczyciel_przedmiot
-        WHERE id_nauczyciela = in_nauczyciel AND przedmiot LIKE in_przedmiot || '%';
+        WHERE id_nauczyciela = in_nauczyciel AND przedmiot LIKE in_przedmiot || '%'; -- tu masz blad 
 
         IF  v_count = 0 THEN
             RAISE brak_danych;
@@ -1063,7 +1068,7 @@ CREATE OR REPLACE PROCEDURE usun_przedmiot_nauczyciela (in_nauczyciel INTEGER, i
         WHEN others THEN
             RAISE;
     END;
-
+/
 
 CREATE OR REPLACE PROCEDURE usun_przydzielone_godz (in_przedmiot VARCHAR2, in_klasa VARCHAR2) AS
         przedmiot_klasa INTEGER;
@@ -1092,6 +1097,7 @@ CREATE OR REPLACE PROCEDURE usun_przydzielone_godz (in_przedmiot VARCHAR2, in_kl
         WHEN OTHERS THEN
             RAISE;
     END;
+/
 
 CREATE OR REPLACE PROCEDURE zakoncz_prace (in_nauczyciel INTEGER, in_data_zakonczenia DATE) AS
         data_rozpoczecia DATE;
@@ -1141,6 +1147,7 @@ CREATE OR REPLACE PROCEDURE zakoncz_prace (in_nauczyciel INTEGER, in_data_zakonc
         WHEN OTHERS THEN
             RAISE;
     END;
+/
 
 CREATE OR REPLACE PROCEDURE zmien_max_godz (in_nauczyciel INTEGER, in_max_godz INTEGER) AS
         nieprawidlowe_godziny EXCEPTION;
@@ -1169,6 +1176,7 @@ CREATE OR REPLACE PROCEDURE zmien_max_godz (in_nauczyciel INTEGER, in_max_godz I
         WHEN OTHERS THEN
             RAISE;
     END;
+/
 
 CREATE OR REPLACE PROCEDURE obsadz_nauczyciela (in_nauczyciel INTEGER, in_przedmiot VARCHAR2, in_rozszerzenie BOOLEAN) AS 
             id INTEGER;
