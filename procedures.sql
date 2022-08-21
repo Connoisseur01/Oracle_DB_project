@@ -962,37 +962,6 @@ CREATE OR REPLACE PROCEDURE proc_zmiana_wychowawcy (in_id_klasy VARCHAR2, in_id_
     END;
 /
 
-CREATE OR REPLACE PROCEDURE obsadz_nauczyciela (nauczyciel INTEGER, przedmiot VARCHAR2, rozszerzenie BOOLEAN) AS 
-            id INTEGER;
-            nazwa VARCHAR2(30);
-            sql_stmt VARCHAR2(400) := 'SELECT id_przedmiotu FROM przedmioty WHERE nazwa_przedmiotu LIKE '':p'' ';
-            c SYS_REFCURSOR;
-        BEGIN
-            nazwa := przedmiot || '%';
-            IF rozszerzenie THEN
-                sql_stmt := sql_stmt || 'AND rozszerzenie IS NOT NULL';
-            ELSE
-                sql_stmt := sql_stmt || 'AND rozszerzenie IS NULL';
-            END IF;
-
-            OPEN c FOR sql_stmt USING nazwa;
-
-            LOOP
-                FETCH c INTO id;
-                EXIT WHEN c%NOTFOUND;
-
-                INSERT INTO nauczyciel_przedmiot (id_nauczyciela, id_przedmiotu)
-                    VALUES (nauczyciel, id);
-            END LOOP;
-        EXCEPTION
-            WHEN NO_DATA_FOUND THEN
-                DBMS_OUTPUT.PUT_LINE('nieprawidlowe dane!');
-                RETURN;
-            WHEN OTHERS THEN
-                RAISE;
-        END;
-/
-
 CREATE OR REPLACE FUNCTION policz_godziny_nauczyciela(in_nauczyciel INTEGER) RETURN INTEGER AS
         ilosc_godz INTEGER;
     BEGIN
@@ -1011,13 +980,15 @@ CREATE OR REPLACE PROCEDURE przydziel_godziny (in_nauczyciel INTEGER, in_przedmi
         przedmiot_klasa INTEGER;
         ilosc_godzin INTEGER;
         max_godz INTEGER;
-        przekroczono_max_godz EXCEPTION; 
+        przekroczono_max_godz EXCEPTION;
+        nazwa VARCHAR2(30) := lower(in_przedmiot) || '_' || SUBSTR(in_klasa, 1, 1);
     BEGIN
         EXECUTE IMMEDIATE
         'SELECT id_przedmioty_klasy, ilosc_godzin_przedmiotu 
         FROM przedmioty_klasy 
-        WHERE id_klasy = :klasa AND id_przedmiotu IN (SELECT id_przedmiotu FROM przedmioty WHERE nazwa_przedmiotu LIKE '':p'')'
-        INTO przedmiot_klasa, ilosc_godzin USING in_klasa, in_przedmiot || '%';
+        WHERE id_klasy = :klasa AND id_przedmiotu 
+        IN (SELECT id_przedmiotu FROM przedmioty WHERE nazwa_przedmiotu = :nazwa)'
+        INTO przedmiot_klasa, ilosc_godzin USING in_klasa, nazwa;
 
         EXECUTE IMMEDIATE
         'SELECT max_godz_tyg
@@ -1050,12 +1021,13 @@ CREATE OR REPLACE PROCEDURE przydziel_godziny (in_nauczyciel INTEGER, in_przedmi
 CREATE OR REPLACE PROCEDURE usun_przedmiot_nauczyciela (in_nauczyciel INTEGER, in_przedmiot VARCHAR2, in_rozszerzenie BOOLEAN) AS
         check_count INTEGER;
         brak_danych EXCEPTION;
+        nazwa VARCHAR2(50) := in_przedmiot || '%';
     BEGIN
         EXECUTE IMMEDIATE
-        'SELECT COUNT(*) into v_count
+        'SELECT COUNT(*)
         FROM nauczyciel_przedmiot
-        WHERE id_nauczyciela = in_nauczyciel AND przedmiot LIKE '':p'''
-        INTO check_count USING in_przedmiot || '%';  
+        WHERE id_nauczyciela = :nauczyciel AND przedmiot LIKE '':p'''
+        INTO check_count USING in_nauczyciel, nazwa;  
 
         IF  check_count = 0 THEN
             RAISE brak_danych;
@@ -1064,11 +1036,11 @@ CREATE OR REPLACE PROCEDURE usun_przedmiot_nauczyciela (in_nauczyciel INTEGER, i
         IF in_rozszerzenie THEN
             EXECUTE IMMEDIATE
             'DELETE nauczyciel_przedmiot 
-            WHERE id_nauczyciela = ' || in_nauczyciel || ' AND przedmiot LIKE ''' || in_przedmiot || '''% AND rozszerzenie IS NOT NULL';
+            WHERE id_nauczyciela = ' || in_nauczyciel || ' AND przedmiot LIKE ''' || nazwa || '''% AND rozszerzenie IS NOT NULL';
         ELSE
             EXECUTE IMMEDIATE
             'DELETE nauczyciel_przedmiot 
-            WHERE id_nauczyciela = ' || in_nauczyciel || ' AND przedmiot LIKE ''' || in_przedmiot || '''% AND rozszerzenie IS NULL';
+            WHERE id_nauczyciela = ' || in_nauczyciel || ' AND przedmiot LIKE ''' || nazwa || '''% AND rozszerzenie IS NULL';
         END IF;
 
     EXCEPTION
@@ -1084,12 +1056,20 @@ CREATE OR REPLACE PROCEDURE usun_przydzielone_godz (in_przedmiot VARCHAR2, in_kl
         przedmiot_klasa INTEGER;
         ilosc_godzin INTEGER;
         nauczyciel_przedmiot INTEGER;
+        check_rozszerzenie VARCHAR2(1);
     BEGIN
+        EXECUTE IMMEDIATE
+        'SELECT rozszerzenie 
+        FROM przedmioty_klasy
+        JOIN przedmioty USING (id_przedmiotu)
+        WHERE id_klasy = :klasa AND id_przedmiotu IN (SELECT id_przedmiotu FROM przedmioty WHERE nazwa_przedmiotu = :przedmiot)'
+        INTO check_rozszerzenie USING in_klasa, in_przedmiot;
+
         EXECUTE IMMEDIATE
         'SELECT id_przedmioty_klasy
         FROM przedmioty_klasy 
-        WHERE id_klasy = :klasa AND id_przedmiotu = (SELECT id_przedmiotu FROM przedmioty WHERE nazwa_przedmiotu = :przedmiot)'
-        INTO przedmiot_klasa USING in_klasa, in_przedmiot;
+        WHERE id_klasy = :klasa AND id_przedmiotu = (SELECT id_przedmiotu FROM przedmioty WHERE nazwa_przedmiotu = :przedmiot AND rozszerzenie = :r)'
+        INTO przedmiot_klasa USING in_klasa, in_przedmiot, check_rozszerzenie;
         
         EXECUTE IMMEDIATE
         'SELECT ilosc_przydzielonych_godzin
@@ -1116,10 +1096,10 @@ CREATE OR REPLACE PROCEDURE zakoncz_prace (in_nauczyciel INTEGER, in_data_zakonc
         data_rozpoczecia DATE;
         niepoprawna_data EXCEPTION;
         nauczyciel_jest_wychowawca EXCEPTION;
-        grupa INTEGER := -1;
+        grupa INTEGER;
     BEGIN
         EXECUTE IMMEDIATE
-        'SELECT data_rozpoczecia_pracy INTO data_rozpoczecia
+        'SELECT data_rozpoczecia_pracy
         FROM nauczyciele 
         WHERE id_nauczyciela = :nauczyciel'
         INTO data_rozpoczecia USING in_nauczyciel;
@@ -1129,18 +1109,18 @@ CREATE OR REPLACE PROCEDURE zakoncz_prace (in_nauczyciel INTEGER, in_data_zakonc
         END IF;
 
         EXECUTE IMMEDIATE
-        'SELECT id_grupy INTO grupa
+        'SELECT COUNT(id_grupy)
         FROM grupy
         WHERE id_wychowawcy = :nauczyciel AND data_zakonczenia > SYSDATE'
         INTO grupa USING in_nauczyciel;
 
-        IF grupa <> -1 THEN
+        IF grupa <> 0 THEN
             RAISE nauczyciel_jest_wychowawca;
         END IF;
         
         EXECUTE IMMEDIATE
         'UPDATE przydzielone_godziny
-        SET ilosc_przydzielonych_godzin = NULL
+        SET ilosc_przydzielonych_godzin = 0
         WHERE id_nauczyciel_przedmiot IN (SELECT id_nauczyciel_przedmiot FROM nauczyciel_przedmiot WHERE id_nauczyciela = :nauczyciel)'
         USING in_nauczyciel;
 
@@ -1186,7 +1166,7 @@ CREATE OR REPLACE PROCEDURE zmien_max_godz (in_nauczyciel INTEGER, in_max_godz I
 
     EXCEPTION
         WHEN nieprawidlowe_godziny THEN
-            DBMS_OUTPUT.PUT_LINE('liczba maksymalnych godzin nie może być mniejsza niż liczba przydzielonych godzin!');
+            DBMS_OUTPUT.PUT_LINE('liczba maksymalnych godzin nie moce byc mniejsza niż liczba przydzielonych godzin!');
             RETURN;
         WHEN nauczyciel_nie_istnieje THEN
             DBMS_OUTPUT.PUT_LINE('nieprawidlowe id nauczyciela!');
@@ -1199,7 +1179,7 @@ CREATE OR REPLACE PROCEDURE obsadz_nauczyciela (in_nauczyciel INTEGER, in_przedm
             id INTEGER;
             nazwa VARCHAR2(30);
             sql_stmt VARCHAR2(400) := 'SELECT id_przedmiotu FROM przedmioty WHERE nazwa_przedmiotu LIKE '':p'' ';
-            c SYS_REFCURSOR;
+            cur SYS_REFCURSOR;
         BEGIN
             nazwa := in_przedmiot || '%';
             IF in_rozszerzenie THEN
@@ -1208,11 +1188,11 @@ CREATE OR REPLACE PROCEDURE obsadz_nauczyciela (in_nauczyciel INTEGER, in_przedm
                 sql_stmt := sql_stmt || 'AND rozszerzenie IS NULL';
             END IF;
 
-            OPEN c FOR sql_stmt USING nazwa;
+            OPEN cur FOR sql_stmt USING nazwa;
 
             LOOP
-                FETCH c INTO id;
-                EXIT WHEN c%NOTFOUND;
+                FETCH cur INTO id;
+                EXIT WHEN cur%NOTFOUND;
 
                 INSERT INTO nauczyciel_przedmiot (id_nauczyciela, id_przedmiotu)
                     VALUES (in_nauczyciel, id);
