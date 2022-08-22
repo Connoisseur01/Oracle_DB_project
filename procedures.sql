@@ -41,7 +41,7 @@ CREATE OR REPLACE PACKAGE BODY populate AS
     
             klasy tabela_klas :=
             tabela_klas('a' => 'mat-fiz', 
-                        'b' => 'biol-hem', 
+                        'b' => 'biol-chem', 
                         'c' => 'ekonomiczna', 
                         'd' => 'humanistyczna');
             klasa VARCHAR2(2);
@@ -278,7 +278,7 @@ CREATE OR REPLACE PROCEDURE proc_wpisanie_oceny (in_pesel INTEGER, in_nazwa_prze
         END;
 
         IF check_data_zakonczenia IS NOT NULL THEN
-            dbms_output.put_line('Uczeń już nie uczy się w danej szkole. ');
+            dbms_output.put_line('UczeÅ juÅ¼ nie uczy siÄ w danej szkole. ');
             RETURN;
         END IF;
         
@@ -290,10 +290,10 @@ CREATE OR REPLACE PROCEDURE proc_wpisanie_oceny (in_pesel INTEGER, in_nazwa_prze
             JOIN grupy                 g ON g.id_grupy = u.id_grupy
             LEFT JOIN przedmioty_uczen pu ON pu.id_ucznia = u.id_ucznia
             JOIN przedmioty            p ON p.id_przedmiotu = pu.id_przedmiotu
-            WHERE substr(nazwa_przedmiotu, length(nazwa_przedmiotu), 1) = substr(g.id_klasy, 1, 1) --zeby znaleźć przedmiot tylko z obecnej klasy 
+            WHERE substr(nazwa_przedmiotu, length(nazwa_przedmiotu), 1) = substr(g.id_klasy, 1, 1) --zeby znaleÅºÄ przedmiot tylko z obecnej klasy 
             AND pesel = ' ||in_pesel||'
             AND rola LIKE ''%u%''
-            AND nazwa_przedmiotu = ( lower('''||in_nazwa_przedmiotu||''') || ''_'' || substr(g.id_klasy, 1, 1) )' -- żeby nie musiec wpisywac numerka w nazwie
+            AND nazwa_przedmiotu = ( lower('''||in_nazwa_przedmiotu||''') || ''_'' || substr(g.id_klasy, 1, 1) )' -- Å¼eby nie musiec wpisywac numerka w nazwie
             INTO        check_przedmiot     , v_id_przedmioty_uczen;
 
         EXCEPTION
@@ -306,7 +306,7 @@ CREATE OR REPLACE PROCEDURE proc_wpisanie_oceny (in_pesel INTEGER, in_nazwa_prze
                             VALUES ( '||v_id_przedmioty_uczen||'    , '|| in_ocena || ' , :systimestamp )'
                             USING systimestamp;
         
-        DBMS_OUTPUT.PUT_LINE('Uczniowi o peselu: '|| in_pesel || ' wpisano ocenę: '|| in_ocena|| ' z przedmiotu: '|| in_nazwa_przedmiotu);
+        DBMS_OUTPUT.PUT_LINE('Uczniowi o peselu: '|| in_pesel || ' wpisano ocenÄ: '|| in_ocena|| ' z przedmiotu: '|| in_nazwa_przedmiotu);
 
     EXECUTE IMMEDIATE
         'UPDATE przedmioty_uczen
@@ -348,7 +348,7 @@ CREATE OR REPLACE PROCEDURE proc_wpisanie_oceny_koncowej (in_pesel INTEGER, in_n
         END;
 
         IF check_data_zakonczenia IS NOT NULL THEN
-            dbms_output.put_line('Uczeń już nie uczy się w danej szkole. ');
+            dbms_output.put_line('UczeÅ juÅ¼ nie uczy siÄ w danej szkole. ');
             RETURN;
         END IF;
         
@@ -360,10 +360,10 @@ CREATE OR REPLACE PROCEDURE proc_wpisanie_oceny_koncowej (in_pesel INTEGER, in_n
             JOIN grupy                  g  ON g.id_grupy = u.id_grupy
             LEFT JOIN przedmioty_uczen  pu ON pu.id_ucznia = u.id_ucznia
             JOIN przedmioty             p  ON p.id_przedmiotu = pu.id_przedmiotu
-            WHERE substr(nazwa_przedmiotu, length(nazwa_przedmiotu), 1) = substr(g.id_klasy, 1, 1) --zeby znaleźć przedmiot tylko z obecnej klasy 
+            WHERE substr(nazwa_przedmiotu, length(nazwa_przedmiotu), 1) = substr(g.id_klasy, 1, 1) --zeby znaleÅºÄ przedmiot tylko z obecnej klasy 
             AND pesel = in_pesel
             AND rola LIKE ''%u%''
-            AND nazwa_przedmiotu = ( lower('||in_nazwa_przedmiotu||')||''_''|| substr(g.id_klasy, 1, 1) )' -- żeby nie musiec wpisywac numerka w nazwie
+            AND nazwa_przedmiotu = ( lower('||in_nazwa_przedmiotu||')||''_''|| substr(g.id_klasy, 1, 1) )' -- Å¼eby nie musiec wpisywac numerka w nazwie
             INTO  check_przedmiot     , v_id_przedmioty_uczen;
             
         EXCEPTION
@@ -379,7 +379,7 @@ CREATE OR REPLACE PROCEDURE proc_wpisanie_oceny_koncowej (in_pesel INTEGER, in_n
 
 /
 
---po końcu roku szkolnego
+--po koÅcu roku szkolnego
 
 CREATE OR REPLACE PACKAGE po_koncu_roku AS  
 PROCEDURE proc_dodaj_date_zakonczenia_grup;
@@ -424,7 +424,7 @@ CREATE OR REPLACE PACKAGE BODY po_koncu_roku AS
                         SELECT u.id_ucznia FROM uczniowie u 
                         left join przedmioty_uczen pu on pu.id_ucznia = u.id_ucznia
                         WHERE id_grupy = ' || v_id_grupy || ' and data_zakonczenia_nauki is null
-                        and pu.ocena_koncowa =1 '; -- lista uczniów dla grup ktore powinny konczyc minus lista uczniow ktorzy maja  1. 
+                        and pu.ocena_koncowa =1 '; -- lista uczniÃ³w dla grup ktore powinny konczyc minus lista uczniow ktorzy maja  1. 
             LOOP
                 FETCH c2 INTO v_id_ucznia;
                 EXIT WHEN c2%notfound;
@@ -442,7 +442,7 @@ CREATE OR REPLACE PACKAGE BODY po_koncu_roku AS
         END LOOP;
 
         CLOSE c1;
-        dbms_output.put_line('Wpisano datę zakończenia dla klas 4: '||v_data_zakonczenia);
+        dbms_output.put_line('Wpisano datÄ zakoÅczenia dla klas 4: '||v_data_zakonczenia);
     END;
 
     PROCEDURE proc_dodaj_rok_szkolny 
@@ -473,7 +473,7 @@ CREATE OR REPLACE PACKAGE BODY po_koncu_roku AS
                     values          (:out_data_rozpoczecia  , :out_data_zakonczenia)'
             USING                     out_data_rozpoczecia  , out_data_zakonczenia;
             
-        dbms_output.put_line('Wpisano rok zaczynajacy się: ' || out_data_rozpoczecia || ' oraz konczacy sie: ' || out_data_zakonczenia);
+        dbms_output.put_line('Wpisano rok zaczynajacy siÄ: ' || out_data_rozpoczecia || ' oraz konczacy sie: ' || out_data_zakonczenia);
         
         EXECUTE IMMEDIATE 
         'ALTER SESSION 
@@ -592,7 +592,7 @@ PROCEDURE proc_niezdanie IS
              'WHERE id_ucznia = '||w.id_ucznia;
         END LOOP;       
         
-        dbms_output.put_line('Przeniesiono uczniów, którzy niezdali, o klasę niżej. ');
+        dbms_output.put_line('Przeniesiono uczniÃ³w, ktÃ³rzy niezdali, o klasÄ niÅ¼ej. ');
     END;    
 
 
@@ -667,7 +667,7 @@ CREATE OR REPLACE PROCEDURE proc_dodaj_osobe
         END; 
 
         IF in_rola NOT IN ( 'k', 'u', 'n' ) 
-        THEN dbms_output.put_line('Niepoprawna rola. Prosze wybrać k, u lub n.');
+        THEN dbms_output.put_line('Niepoprawna rola. Prosze wybraÄ k, u lub n.');
         RETURN;
         END IF;
         
@@ -679,7 +679,7 @@ CREATE OR REPLACE PROCEDURE proc_dodaj_osobe
                 WHERE pesel = '||in_pesel;
                 dbms_output.put_line('Dodano role do istniejacego rekordu');
                 
-            ELSE dbms_output.put_line('Osoba o identycznych danych istnieje już w bazie.');
+            ELSE dbms_output.put_line('Osoba o identycznych danych istnieje juÅ¼ w bazie.');
             END IF;
 
             IF check_numer_telefonu <> in_numer_telefonu THEN
@@ -754,7 +754,7 @@ CREATE OR REPLACE PROCEDURE proc_aktual_dane_osob (in_pesel INTEGER, in_kolumna 
         EXECUTE IMMEDIATE 'UPDATE dane_osobowe 
                         SET '||in_kolumna||' = '''||in_aktualizacja||'''
                        WHERE pesel = '||in_pesel ; 
-        dbms_output.put_line( 'Zaktualizowano pole '||in_kolumna||' o wartość '||in_aktualizacja|| ' dla osoby o peselu: '|| in_pesel||'.');
+        dbms_output.put_line( 'Zaktualizowano pole '||in_kolumna||' o wartoÅÄ '||in_aktualizacja|| ' dla osoby o peselu: '|| in_pesel||'.');
                
     EXCEPTION
             WHEN check_constraint_violated 
@@ -808,10 +808,10 @@ CREATE OR REPLACE PROCEDURE proc_aktual_data_zakonczenia_uczen (in_pesel INTEGER
         END;
 
         IF check_data_zakonczenia IS NOT NULL 
-            THEN dbms_output.put_line('Uczeń już nie uczy się w danej szkole. ');
+            THEN dbms_output.put_line('UczeÅ juÅ¼ nie uczy siÄ w danej szkole. ');
             RETURN;
         ELSIF check_data_rozpoczecia > in_data_zakonczenia 
-        THEN dbms_output.put_line('Data zakonczenia nie moze być wcześniejsza niż data rozpoczęcia nauki. Prosze wpisac poprawna datę.');
+        THEN dbms_output.put_line('Data zakonczenia nie moze byÄ wczeÅniejsza niÅ¼ data rozpoczÄcia nauki. Prosze wpisac poprawna datÄ.');
             RETURN;
         END IF;
 
@@ -821,7 +821,7 @@ CREATE OR REPLACE PROCEDURE proc_aktual_data_zakonczenia_uczen (in_pesel INTEGER
         WHERE id_dane_osobowe = (SELECT id_dane_osobowe FROM dane_osobowe WHERE pesel = '||in_pesel||')'
         USING IN in_data_zakonczenia, in_pesel;
         
-        dbms_output.put_line('Uczniowi o peselu: ' || in_pesel || ' wpisano datę zakończenia nauki: ' || in_data_zakonczenia || '.');
+        dbms_output.put_line('Uczniowi o peselu: ' || in_pesel || ' wpisano datÄ zakoÅczenia nauki: ' || in_data_zakonczenia || '.');
     END;
 /
 
@@ -855,11 +855,11 @@ CREATE OR REPLACE PROCEDURE proc_zmiana_kierunku (in_pesel INTEGER, in_nowy_kier
         END;
 
         IF check_data_zakonczenia IS NOT NULL 
-            THEN dbms_output.put_line('Uczeń już nie uczy się w danej szkole. ');
+            THEN dbms_output.put_line('UczeÅ juÅ¼ nie uczy siÄ w danej szkole. ');
             RETURN;
             
         ELSIF lower(substr(v_stara_klasa,2,1)) = lower(in_nowy_kierunek)
-        THEN dbms_output.put_line('Nowy kierunek nie może być taki sam jak wcześniejszy. Prosze wpisac poprawny nowy kierunek. ');
+        THEN dbms_output.put_line('Nowy kierunek nie moÅ¼e byÄ taki sam jak wczeÅniejszy. Prosze wpisac poprawny nowy kierunek. ');
             RETURN;
         END IF;
 
@@ -918,7 +918,7 @@ CREATE OR REPLACE PROCEDURE proc_zmiana_wychowawcy (in_id_klasy VARCHAR2, in_id_
         END;
 
         IF check_grupa_daty IS NOT NULL THEN 
-            dbms_output.put_line('Klasa już skończyla szkole');
+            dbms_output.put_line('Klasa juÅ¼ skoÅczyla szkole');
             RETURN;
         END IF;
         
@@ -1138,7 +1138,7 @@ CREATE OR REPLACE PROCEDURE zakoncz_prace (in_nauczyciel INTEGER, in_data_zakonc
             DBMS_OUTPUT.PUT_LINE('data zakonczenia nie moze byc mniejsza od daty rozpoczecia!');
             RETURN;
         WHEN nauczyciel_jest_wychowawca THEN
-            DBMS_OUTPUT.PUT_LINE('nauczyciel jest aktualnie wychowawcą!');
+            DBMS_OUTPUT.PUT_LINE('nauczyciel jest aktualnie wychowawcÄ!');
             RETURN;
         WHEN NO_DATA_FOUND THEN
             DBMS_OUTPUT.PUT_LINE('nieprawidlowe id nauczyciela!');
@@ -1168,7 +1168,7 @@ CREATE OR REPLACE PROCEDURE zmien_max_godz (in_nauczyciel INTEGER, in_max_godz I
 
     EXCEPTION
         WHEN nieprawidlowe_godziny THEN
-            DBMS_OUTPUT.PUT_LINE('liczba maksymalnych godzin nie moce byc mniejsza niż liczba przydzielonych godzin!');
+            DBMS_OUTPUT.PUT_LINE('liczba maksymalnych godzin nie moce byc mniejsza niÅ¼ liczba przydzielonych godzin!');
             RETURN;
         WHEN nauczyciel_nie_istnieje THEN
             DBMS_OUTPUT.PUT_LINE('nieprawidlowe id nauczyciela!');
@@ -1315,7 +1315,7 @@ PROCEDURE wypisz_oceny_ucznia ( in_pesel INTEGER ) IS
         INTO v_imie, v_nazwisko, v_id_klasy;
 
         dbms_output.put_line(v_imie || ' ' || v_nazwisko || ' klasa ' || v_id_klasy);
-        dbms_output.put_line('Lista przedmiot�w i ocen ');
+        dbms_output.put_line('Lista przedmiotów i ocen ');
         dbms_output.put('------------------------');
         
         FOR w IN c1 LOOP
