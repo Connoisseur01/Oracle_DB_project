@@ -986,8 +986,7 @@ CREATE OR REPLACE PROCEDURE przydziel_godziny (in_nauczyciel INTEGER, in_przedmi
         EXECUTE IMMEDIATE
         'SELECT id_przedmioty_klasy, ilosc_godzin_przedmiotu 
         FROM przedmioty_klasy 
-        WHERE id_klasy = :klasa AND id_przedmiotu 
-        IN (SELECT id_przedmiotu FROM przedmioty WHERE nazwa_przedmiotu = :nazwa)'
+        WHERE id_klasy = :klasa AND id_przedmiotu IN (SELECT id_przedmiotu FROM przedmioty WHERE nazwa_przedmiotu = :nazwa)'
         INTO przedmiot_klasa, ilosc_godzin USING in_klasa, nazwa;
 
         EXECUTE IMMEDIATE
@@ -1021,12 +1020,12 @@ CREATE OR REPLACE PROCEDURE przydziel_godziny (in_nauczyciel INTEGER, in_przedmi
 CREATE OR REPLACE PROCEDURE usun_przedmiot_nauczyciela (in_nauczyciel INTEGER, in_przedmiot VARCHAR2, in_rozszerzenie BOOLEAN) AS
         check_count INTEGER;
         brak_danych EXCEPTION;
-        nazwa VARCHAR2(50) := in_przedmiot || '%';
+        nazwa VARCHAR2(50) := lower(in_przedmiot) || '%';
     BEGIN
         EXECUTE IMMEDIATE
         'SELECT COUNT(*)
         FROM nauczyciel_przedmiot
-        WHERE id_nauczyciela = :nauczyciel AND przedmiot LIKE '':p'''
+        WHERE id_nauczyciela = :nauczyciel AND id_przedmiotu IN (SELECT id_przedmiotu FROM przedmioty WHERE nazwa_przedmiotu LIKE :p)'
         INTO check_count USING in_nauczyciel, nazwa;  
 
         IF  check_count = 0 THEN
@@ -1036,11 +1035,13 @@ CREATE OR REPLACE PROCEDURE usun_przedmiot_nauczyciela (in_nauczyciel INTEGER, i
         IF in_rozszerzenie THEN
             EXECUTE IMMEDIATE
             'DELETE nauczyciel_przedmiot 
-            WHERE id_nauczyciela = ' || in_nauczyciel || ' AND przedmiot LIKE ''' || nazwa || '''% AND rozszerzenie IS NOT NULL';
+            WHERE id_nauczyciela = ' || in_nauczyciel ||  
+            ' AND id_przedmiotu IN (SELECT id_przedmiotu FROM przedmioty WHERE nazwa_przedmiotu LIKE ''' || nazwa || ''' AND rozszerzenie IS NOT NULL)'; 
         ELSE
             EXECUTE IMMEDIATE
             'DELETE nauczyciel_przedmiot 
-            WHERE id_nauczyciela = ' || in_nauczyciel || ' AND przedmiot LIKE ''' || nazwa || '''% AND rozszerzenie IS NULL';
+            WHERE id_nauczyciela = ' || in_nauczyciel ||  
+            ' AND id_przedmiotu IN (SELECT id_przedmiotu FROM przedmioty WHERE nazwa_przedmiotu LIKE ''' || nazwa || ''' AND rozszerzenie IS NULL)';
         END IF;
 
     EXCEPTION
@@ -1057,19 +1058,20 @@ CREATE OR REPLACE PROCEDURE usun_przydzielone_godz (in_przedmiot VARCHAR2, in_kl
         ilosc_godzin INTEGER;
         nauczyciel_przedmiot INTEGER;
         check_rozszerzenie VARCHAR2(1);
+        nazwa VARCHAR2(30) := lower(in_przedmiot) || '_' || SUBSTR(in_klasa, 1, 1);
     BEGIN
         EXECUTE IMMEDIATE
         'SELECT rozszerzenie 
         FROM przedmioty_klasy
         JOIN przedmioty USING (id_przedmiotu)
         WHERE id_klasy = :klasa AND id_przedmiotu IN (SELECT id_przedmiotu FROM przedmioty WHERE nazwa_przedmiotu = :przedmiot)'
-        INTO check_rozszerzenie USING in_klasa, in_przedmiot;
+        INTO check_rozszerzenie USING in_klasa, nazwa;
 
         EXECUTE IMMEDIATE
         'SELECT id_przedmioty_klasy
         FROM przedmioty_klasy 
         WHERE id_klasy = :klasa AND id_przedmiotu = (SELECT id_przedmiotu FROM przedmioty WHERE nazwa_przedmiotu = :przedmiot AND rozszerzenie = :r)'
-        INTO przedmiot_klasa USING in_klasa, in_przedmiot, check_rozszerzenie;
+        INTO przedmiot_klasa USING in_klasa, nazwa, check_rozszerzenie;
         
         EXECUTE IMMEDIATE
         'SELECT ilosc_przydzielonych_godzin
@@ -1177,11 +1179,10 @@ CREATE OR REPLACE PROCEDURE zmien_max_godz (in_nauczyciel INTEGER, in_max_godz I
 
 CREATE OR REPLACE PROCEDURE obsadz_nauczyciela (in_nauczyciel INTEGER, in_przedmiot VARCHAR2, in_rozszerzenie BOOLEAN) AS 
             id INTEGER;
-            nazwa VARCHAR2(30);
-            sql_stmt VARCHAR2(400) := 'SELECT id_przedmiotu FROM przedmioty WHERE nazwa_przedmiotu LIKE '':p'' ';
+            nazwa VARCHAR2(30) := in_przedmiot || '%';
+            sql_stmt VARCHAR2(400) := 'SELECT id_przedmiotu FROM przedmioty WHERE nazwa_przedmiotu LIKE :p ';
             cur SYS_REFCURSOR;
         BEGIN
-            nazwa := in_przedmiot || '%';
             IF in_rozszerzenie THEN
                 sql_stmt := sql_stmt || 'AND rozszerzenie IS NOT NULL';
             ELSE
@@ -1197,6 +1198,8 @@ CREATE OR REPLACE PROCEDURE obsadz_nauczyciela (in_nauczyciel INTEGER, in_przedm
                 INSERT INTO nauczyciel_przedmiot (id_nauczyciela, id_przedmiotu)
                     VALUES (in_nauczyciel, id);
             END LOOP;
+
+            CLOSE cur;
         EXCEPTION
             WHEN NO_DATA_FOUND THEN
                 DBMS_OUTPUT.PUT_LINE('nieprawidlowe dane!');
