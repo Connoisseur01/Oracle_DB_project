@@ -176,36 +176,36 @@ CREATE OR REPLACE PACKAGE BODY populate AS
 
 
     PROCEDURE pop_oceny IS 
-            v_rok_przedmiot 		INTEGER;
-            v_ostatnia_klasa 		INTEGER;
-            v_rozpoczecie_nauki 	DATE; 
+            v_rok_przedmiot         INTEGER;
+            v_ostatnia_klasa        INTEGER;
+            v_rozpoczecie_nauki     DATE; 
 
-            v_data_rozpoczecia 		DATE;
-            v_data_zakonczenia 		DATE;
+            v_data_rozpoczecia      DATE;
+            v_data_zakonczenia      DATE;
 
         BEGIN
         dbms_random.seed(11);
             FOR i IN 1..10050 LOOP
-                SELECT 	to_number(substr(p.nazwa_przedmiotu, - 1, 1))	, to_number(substr(g.id_klasy, 1, 1))	, g.data_rozpoczecia 
-                INTO 	v_rok_przedmiot									, v_ostatnia_klasa						, v_rozpoczecie_nauki
-                FROM przedmioty_uczen 	p_u
-                LEFT JOIN przedmioty 	p 	ON p.id_przedmiotu = p_u.id_przedmiotu
-                LEFT JOIN uczniowie 	u 	ON u.id_ucznia = p_u.id_ucznia
-                LEFT JOIN grupy 		g 	ON g.id_grupy = u.id_grupy
+                SELECT  to_number(substr(p.nazwa_przedmiotu, - 1, 1))   , to_number(substr(g.id_klasy, 1, 1))   , g.data_rozpoczecia 
+                INTO    v_rok_przedmiot                                 , v_ostatnia_klasa                      , v_rozpoczecie_nauki
+                FROM przedmioty_uczen   p_u
+                LEFT JOIN przedmioty    p   ON p.id_przedmiotu = p_u.id_przedmiotu
+                LEFT JOIN uczniowie     u   ON u.id_ucznia = p_u.id_ucznia
+                LEFT JOIN grupy         g   ON g.id_grupy = u.id_grupy
                 WHERE p_u.id_przedmioty_uczen = i;
 
                 FOR n IN 1..4 LOOP
                     IF v_rok_przedmiot = n THEN
-                        SELECT	data_rozpoczecia	, data_zakonczenia 
-                        INTO 	v_data_rozpoczecia	, v_data_zakonczenia
+                        SELECT  data_rozpoczecia    , data_zakonczenia 
+                        INTO    v_data_rozpoczecia  , v_data_zakonczenia
                         FROM rok_szkolny
                         WHERE id_rs = (SELECT id_rs + n - 1 
                                         FROM rok_szkolny
                                         WHERE data_rozpoczecia = v_rozpoczecie_nauki);
 
                         FOR j IN 1..5 LOOP
-                            INSERT INTO oceny 	(id_przedmioty_uczen, ocena, timestamp_oceny) 
-                                VALUES 			(
+                            INSERT INTO oceny   (id_przedmioty_uczen, ocena, timestamp_oceny) 
+                                VALUES          (
                                     i,
                                     round(dbms_random.value(2, 12)) / 2,
                                     (to_date(v_data_rozpoczecia, 'DD/MM/YY HH24:MI:SS') 
@@ -220,25 +220,25 @@ CREATE OR REPLACE PACKAGE BODY populate AS
      
      
     PROCEDURE pop_srednia_ocen IS
-	    BEGIN
-	        EXECUTE IMMEDIATE
-		    'UPDATE przedmioty_uczen pu
-		        SET
-			    srednia_ocen = ( SELECT AVG(ocena)
-			                     FROM oceny o
-			                     WHERE o.id_przedmioty_uczen = pu.id_przedmioty_uczen )';
-	    END;
+        BEGIN
+            EXECUTE IMMEDIATE
+            'UPDATE przedmioty_uczen pu
+                SET
+                srednia_ocen = ( SELECT AVG(ocena)
+                                 FROM oceny o
+                                 WHERE o.id_przedmioty_uczen = pu.id_przedmioty_uczen )';
+        END;
         
      
      PROCEDURE pop_ocena_koncowa IS
-	     BEGIN
-	        EXECUTE IMMEDIATE
-		    'UPDATE przedmioty_uczen pu
-		        SET
-			    ocena_koncowa = ( SELECT AVG(ocena)
-			                     FROM oceny o
-			                     WHERE o.id_przedmioty_uczen = pu.id_przedmioty_uczen )';
-	    END;
+         BEGIN
+            EXECUTE IMMEDIATE
+            'UPDATE przedmioty_uczen pu
+                SET
+                ocena_koncowa = ( SELECT AVG(ocena)
+                                 FROM oceny o
+                                 WHERE o.id_przedmioty_uczen = pu.id_przedmioty_uczen )';
+        END;
         
         
 END populate;
@@ -351,21 +351,21 @@ CREATE OR REPLACE PROCEDURE proc_wpisanie_oceny_koncowej (in_pesel INTEGER, in_n
             dbms_output.put_line('Uczeń już nie uczy się w danej szkole. ');
             RETURN;
         END IF;
-		
+        
         BEGIN
-		    EXECUTE IMMEDIATE
+            EXECUTE IMMEDIATE
             'SELECT  nazwa_przedmiotu    , id_przedmioty_uczen           
             FROM uczniowie u
-            JOIN dane_osobowe     		d  ON d.id_dane_osobowe = u.id_dane_osobowe
-            JOIN grupy            		g  ON g.id_grupy = u.id_grupy
-            LEFT JOIN przedmioty_uczen 	pu ON pu.id_ucznia = u.id_ucznia
-            JOIN przedmioty       		p  ON p.id_przedmiotu = pu.id_przedmiotu
+            JOIN dane_osobowe           d  ON d.id_dane_osobowe = u.id_dane_osobowe
+            JOIN grupy                  g  ON g.id_grupy = u.id_grupy
+            LEFT JOIN przedmioty_uczen  pu ON pu.id_ucznia = u.id_ucznia
+            JOIN przedmioty             p  ON p.id_przedmiotu = pu.id_przedmiotu
             WHERE substr(nazwa_przedmiotu, length(nazwa_przedmiotu), 1) = substr(g.id_klasy, 1, 1) --zeby znaleźć przedmiot tylko z obecnej klasy 
             AND pesel = in_pesel
             AND rola LIKE ''%u%''
             AND nazwa_przedmiotu = ( lower('||in_nazwa_przedmiotu||')||''_''|| substr(g.id_klasy, 1, 1) )' -- żeby nie musiec wpisywac numerka w nazwie
             INTO  check_przedmiot     , v_id_przedmioty_uczen;
-			
+            
         EXCEPTION
             WHEN no_data_found THEN
                 dbms_output.put_line('Niepoprawna nazwa przedmiotu. ');
@@ -506,15 +506,15 @@ IS
 
 
 PROCEDURE proc_nowy_rocznik (
-    in_ile_klas 	INTEGER
+    in_ile_klas     INTEGER
 ) IS
     out_data_rozpoczecia  DATE;
     out_id_wychowawcy     INTEGER;
     v_id_klasy            VARCHAR2(2);
-	
+    
     c1                    SYS_REFCURSOR;
     vsql                  VARCHAR2(20000) := 
-	'SELECT * FROM(
+    'SELECT * FROM(
             SELECT id_nauczyciela
             FROM nauczyciele n 
             LEFT JOIN grupy g ON g.id_wychowawcy = n.id_nauczyciela
@@ -575,7 +575,7 @@ PROCEDURE proc_niezdanie IS
            ;
 
         v_id_nowa_grupa INTEGER;
-		
+        
     BEGIN
         FOR w IN c1 LOOP    
         
@@ -794,12 +794,12 @@ CREATE OR REPLACE PROCEDURE proc_aktual_data_zakonczenia_uczen (in_pesel INTEGER
         check_pesel             INTEGER;
     BEGIN
         BEGIN
-		    EXECUTE IMMEDIATE
+            EXECUTE IMMEDIATE
             'SELECT  d.pesel     , u.data_rozpoczecia_nauki  , u.data_zakonczenia_nauki             
              FROM uczniowie    u
              JOIN dane_osobowe d ON d.id_dane_osobowe = u.id_dane_osobowe
              WHERE pesel = '||in_pesel||' AND rola like ''%u%'''
-			 INTO    check_pesel , check_data_rozpoczecia    , check_data_zakonczenia;
+             INTO    check_pesel , check_data_rozpoczecia    , check_data_zakonczenia;
 
         EXCEPTION
             WHEN no_data_found 
@@ -840,7 +840,7 @@ CREATE OR REPLACE PROCEDURE proc_zmiana_kierunku (in_pesel INTEGER, in_nowy_kier
         
     BEGIN
         BEGIN
-		    EXECUTE IMMEDIATE
+            EXECUTE IMMEDIATE
             'SELECT  u.id_ucznia,  d.pesel     , u.data_zakonczenia_nauki   , g.id_klasy
              FROM uczniowie    u
              JOIN dane_osobowe d ON d.id_dane_osobowe = u.id_dane_osobowe
@@ -868,7 +868,7 @@ CREATE OR REPLACE PROCEDURE proc_zmiana_kierunku (in_pesel INTEGER, in_nowy_kier
         FROM grupy g
         JOIN klasy k on  g.id_klasy = k.id_klasy 
         WHERE k.id_klasy like lower(substr('''||v_stara_klasa||''',1,1))||lower('''||in_nowy_kierunek||''')'
-		INTO    out_nowa_grupa    , v_nowa_klasa; 
+        INTO    out_nowa_grupa    , v_nowa_klasa; 
 
         EXECUTE IMMEDIATE 'UPDATE uczniowie
                             SET id_grupy = '||out_nowa_grupa||
@@ -898,7 +898,7 @@ CREATE OR REPLACE PROCEDURE proc_zmiana_kierunku (in_pesel INTEGER, in_nowy_kier
 CREATE OR REPLACE PROCEDURE proc_zmiana_wychowawcy (in_id_klasy VARCHAR2, in_id_wychowawcy INTEGER) IS
 
         v_id_grupy         INTEGER;
-		
+        
         check_grupa_daty   DATE;
         check_nauczyciele  INTEGER;
         check_wychowawcy   INTEGER;
@@ -908,7 +908,7 @@ CREATE OR REPLACE PROCEDURE proc_zmiana_wychowawcy (in_id_klasy VARCHAR2, in_id_
             'SELECT  id_grupy       , data_zakonczenia
             FROM grupy
             WHERE data_zakonczenia is null 
-			AND id_klasy = '''||lower(in_id_klasy)||''''
+            AND id_klasy = '''||lower(in_id_klasy)||''''
             INTO  v_id_grupy , check_grupa_daty;
 
         EXCEPTION
@@ -1209,7 +1209,17 @@ CREATE OR REPLACE PROCEDURE obsadz_nauczyciela (in_nauczyciel INTEGER, in_przedm
         END;
 /
 
-CREATE OR REPLACE PROCEDURE pokaz_wolnych_nauczycieli (in_przedmiot VARCHAR2, in_klasa VARCHAR2) AS
+CREATE OR REPLACE PACKAGE raporty AS 
+PROCEDURE pokaz_wolnych_nauczycieli(in_przedmiot VARCHAR2, in_klasa VARCHAR2); 
+PROCEDURE wyswietl_klasy;
+PROCEDURE wypisz_oceny_ucznia( in_pesel INTEGER );
+PROCEDURE wypisz_oceny_per_przedmiot_klasa(in_id_klasy  VARCHAR2, in_przedmiot VARCHAR2) ;
+END raporty;
+/
+
+CREATE OR REPLACE PACKAGE BODY raporty AS
+
+PROCEDURE pokaz_wolnych_nauczycieli (in_przedmiot VARCHAR2, in_klasa VARCHAR2) AS
         godziny INTEGER;
         check_rozszerzenie VARCHAR2(1);
     BEGIN
@@ -1240,3 +1250,133 @@ CREATE OR REPLACE PROCEDURE pokaz_wolnych_nauczycieli (in_przedmiot VARCHAR2, in
             END LOOP;
         END;
     END;
+    
+PROCEDURE wyswietl_klasy IS
+    CURSOR c1 IS
+    SELECT g.id_grupy, g.id_klasy, d.imie, d.nazwisko, k.nazwa_kierunku, g.data_rozpoczecia
+      FROM grupy        g
+      LEFT JOIN klasy        k ON k.id_klasy        = g.id_klasy
+      LEFT JOIN nauczyciele  n ON n.id_nauczyciela  = g.id_wychowawcy
+      LEFT JOIN dane_osobowe d ON d.id_dane_osobowe = n.id_dane_osobowe
+     WHERE data_zakonczenia IS NULL
+     ORDER BY id_klasy;
+
+    c2                SYS_REFCURSOR;
+    
+    v_imie_ucznia     dane_osobowe.imie%TYPE;
+    v_nazwisko_ucznia dane_osobowe.nazwisko%TYPE;
+BEGIN
+    FOR w IN c1 LOOP
+        dbms_output.put_line('Klasa: ' || w.id_klasy || ', ' || w.nazwa_kierunku);
+        dbms_output.put_line('Rocznik: ' || to_char(w.data_rozpoczecia, 'yyyy') || '/' ||(to_number(to_char(w.data_rozpoczecia, 'yyyy')) + 4));
+        dbms_output.put_line('Wychowawca: ' || w.imie || ' ' || w.nazwisko);
+        dbms_output.put_line('----------------------');
+
+        OPEN c2 FOR 'select imie, nazwisko from uczniowie u
+        left join dane_osobowe d on d.id_dane_osobowe = u.id_dane_osobowe 
+        where id_grupy = ' || w.id_grupy;
+
+        LOOP
+            FETCH c2 INTO
+                v_imie_ucznia, v_nazwisko_ucznia;
+            EXIT WHEN c2%notfound;
+            dbms_output.put_line(c2%rowcount || '. ' || v_imie_ucznia || ' ' || v_nazwisko_ucznia);
+        END LOOP;
+
+        CLOSE c2;
+        dbms_output.new_line;
+    END LOOP;
+END;
+
+PROCEDURE wypisz_oceny_ucznia ( in_pesel INTEGER ) IS
+        CURSOR c1 IS
+        SELECT  p.nazwa_przedmiotu, pu.srednia_ocen, pu.ocena_koncowa, pu.id_przedmioty_uczen
+          FROM uczniowie        u
+          LEFT JOIN przedmioty_uczen pu ON pu.id_ucznia      = u.id_ucznia
+          LEFT JOIN przedmioty       p  ON p.id_przedmiotu   = pu.id_przedmiotu
+          LEFT JOIN grupy            g  ON g.id_grupy        = u.id_grupy
+          LEFT JOIN dane_osobowe     d  ON d.id_dane_osobowe = u.id_dane_osobowe
+         WHERE substr(p.nazwa_przedmiotu, length(p.nazwa_przedmiotu), 1) = substr(g.id_klasy, 1, 1)
+           AND d.pesel = in_pesel;
+
+        c2          SYS_REFCURSOR;
+        
+        v_ocena     NUMBER;
+        v_imie      dane_osobowe.imie%TYPE;
+        v_nazwisko  dane_osobowe.nazwisko%TYPE;
+        v_id_klasy  grupy.id_klasy%TYPE;
+    BEGIN
+        EXECUTE IMMEDIATE
+        'SELECT imie, nazwisko, g.id_klasy
+         FROM uczniowie         u
+         LEFT JOIN dane_osobowe d ON d.id_dane_osobowe = u.id_dane_osobowe
+         LEFT JOIN grupy        g ON g.id_grupy = u.id_grupy
+         WHERE pesel = '||in_pesel
+        INTO v_imie, v_nazwisko, v_id_klasy;
+
+        dbms_output.put_line(v_imie || ' ' || v_nazwisko || ' klasa ' || v_id_klasy);
+        dbms_output.put_line('Lista przedmiot�w i ocen ');
+        dbms_output.put('------------------------');
+        
+        FOR w IN c1 LOOP
+            dbms_output.new_line;
+            dbms_output.put(rpad(initcap(substr(w.nazwa_przedmiotu, 1, length(w.nazwa_przedmiotu) - 2)) || ': ',21,' '));
+
+            OPEN c2 FOR 'select ocena
+                     from oceny
+                     where id_przedmioty_uczen = ' || w.id_przedmioty_uczen;
+
+            LOOP
+                FETCH c2 INTO v_ocena;
+                EXIT WHEN c2%notfound;
+                dbms_output.put(v_ocena || '; ');
+            END LOOP;
+
+            CLOSE c2;
+            dbms_output.put('?rednia ocen: ' || w.srednia_ocen || ' Ocena koncowa: ' || w.ocena_koncowa);
+
+        END LOOP;
+
+    END;
+
+PROCEDURE wypisz_oceny_per_przedmiot_klasa (
+          in_id_klasy  VARCHAR2
+        , in_przedmiot VARCHAR2) 
+        IS
+        CURSOR c1 IS
+        SELECT imie, nazwisko, g.id_klasy, id_przedmioty_uczen
+          FROM uczniowie        u
+          LEFT JOIN dane_osobowe     d  ON d.id_dane_osobowe = u.id_dane_osobowe
+          LEFT JOIN grupy            g  ON g.id_grupy        = u.id_grupy
+          LEFT JOIN klasy            k  ON k.id_klasy        = g.id_klasy
+          LEFT JOIN przedmioty_klasy pk ON pk.id_klasy       = k.id_klasy
+          LEFT JOIN przedmioty       p  ON p.id_przedmiotu   = pk.id_przedmiotu
+          LEFT JOIN przedmioty_uczen pu ON pu.id_ucznia      = u.id_ucznia
+           AND pu.id_przedmiotu = p.id_przedmiotu
+         WHERE g.id_klasy = in_id_klasy
+           AND nazwa_przedmiotu = in_przedmiot||'_'||substr(in_id_klasy,1,1)
+         ORDER BY nazwisko;
+
+        c2      SYS_REFCURSOR;
+        v_ocena NUMBER;
+    BEGIN
+        dbms_output.put_line('Klasa: ' || in_id_klasy || ', Przedmiot: ' || initcap(in_przedmiot));
+        FOR w IN c1 LOOP
+            dbms_output.new_line;
+            dbms_output.put(rpad(w.nazwisko || ', ' || w.imie || ': ',25, ' '));
+
+            OPEN c2 FOR 'select ocena
+                     from oceny
+                     where id_przedmioty_uczen = ' || w.id_przedmioty_uczen;
+
+            LOOP
+                FETCH c2 INTO v_ocena;
+                EXIT WHEN c2%notfound;
+                dbms_output.put(v_ocena || '; ');
+            END LOOP;
+
+            CLOSE c2;
+        END LOOP;
+
+    END;
+END raporty;    
