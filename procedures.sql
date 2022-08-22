@@ -265,8 +265,6 @@ END populate;
 
 --przed koncem roku szkolnego
 
-
-
 --wpisanie oceny jednostkowej 
 
 CREATE OR REPLACE PROCEDURE wpisanie_oceny (in_pesel INTEGER, in_nazwa_przedmiotu VARCHAR2, in_ocena INTEGER) IS
@@ -321,9 +319,8 @@ CREATE OR REPLACE PROCEDURE wpisanie_oceny (in_pesel INTEGER, in_nazwa_przedmiot
                 RETURN;
         END;
 
-        EXECUTE IMMEDIATE 'INSERT INTO oceny (id_przedmioty_uczen   , ocena             , timestamp_oceny)
-                            VALUES ( '||v_id_przedmioty_uczen||'    , '|| in_ocena || ' , :systimestamp )'
-                            USING systimestamp;
+        INSERT INTO oceny (id_przedmioty_uczen    ,ocena     ,timestamp_oceny)
+               VALUES     (v_id_przedmioty_uczen  ,in_ocena  ,systimestamp   );
         
         DBMS_OUTPUT.PUT_LINE('Uczniowi o peselu: '|| in_pesel || ' wpisano ocenę: '|| in_ocena|| ' z przedmiotu: '|| in_nazwa_przedmiotu);
 
@@ -659,7 +656,7 @@ CREATE OR REPLACE PROCEDURE dodaj_osobe
         , in_numer_telefonu dane_osobowe.numer_telefonu%TYPE
         , in_email          dane_osobowe.email%TYPE
         , in_adres          dane_osobowe.adres_zamieszkania%TYPE
-        , in_data_urodzenia dane_osobowe.data_urodzenia%TYPE
+        , in_data_urodzenia VARCHAR2
         , in_pesel          dane_osobowe.pesel%TYPE
         , in_rola           dane_osobowe.rola%TYPE
     ) IS
@@ -671,11 +668,10 @@ CREATE OR REPLACE PROCEDURE dodaj_osobe
     BEGIN
 
         BEGIN
-        EXECUTE IMMEDIATE 
-            'SELECT     pesel       , numer_telefonu        , email         , adres_zamieszkania    , rola
-              FROM dane_osobowe
-             WHERE pesel = '||in_pesel
-                INTO    check_pesel , check_numer_telefonu  , check_email   , check_adres           , check_rola;
+        SELECT pesel       , numer_telefonu       , email       , adres_zamieszkania , rola
+		  INTO check_pesel , check_numer_telefonu , check_email , check_adres        , check_rola
+          FROM dane_osobowe
+         WHERE pesel = in_pesel;
 
         EXCEPTION
             WHEN no_data_found THEN null; 
@@ -694,7 +690,7 @@ CREATE OR REPLACE PROCEDURE dodaj_osobe
                 WHERE pesel = '||in_pesel;
                 dbms_output.put_line('Dodano role do istniejacego rekordu');
                 
-            ELSE dbms_output.put_line('Osoba o identycznych danych istnieje juÅ¼ w bazie.');
+            ELSE dbms_output.put_line('Osoba o identycznych danych istnieje już w bazie.');
             END IF;
 
             IF check_numer_telefonu <> in_numer_telefonu THEN
@@ -725,11 +721,9 @@ CREATE OR REPLACE PROCEDURE dodaj_osobe
             RETURN;
             
         ELSE 
-        EXECUTE IMMEDIATE
-        'INSERT INTO dane_osobowe ( imie    , nazwisko      , numer_telefonu     , email     , adres_zamieszkania , data_urodzenia      , pesel     , rola) 
-        VALUES (                    :in_imie, :in_nazwisko  , :in_numer_telefonu , :in_email , :in_adres          , :in_data_urodzenia  , :in_pesel , :in_rola) '
-        USING IN                    in_imie , in_nazwisko   , in_numer_telefonu  , in_email  , in_adres           , in_data_urodzenia   , in_pesel  , in_rola; 
-
+        INSERT INTO dane_osobowe ( imie    , nazwisko      , numer_telefonu     , email     , adres_zamieszkania , data_urodzenia                          , pesel    , rola) 
+         VALUES                  ( in_imie , in_nazwisko   , in_numer_telefonu  , in_email  , in_adres           , to_date(in_data_urodzenia,'dd-mm-yyyy') , in_pesel , in_rola);
+        dbms_output.put_line('Dodano dane nowej osoby.'); 
         END IF;
 
     END;
@@ -802,7 +796,7 @@ CREATE OR REPLACE PROCEDURE usun_dane_osob (in_pesel INTEGER) IS
         END;
 /
 
-CREATE OR REPLACE PROCEDURE aktual_data_zakonczenia_uczen (in_pesel INTEGER, in_data_zakonczenia DATE) 
+CREATE OR REPLACE PROCEDURE aktual_data_zakonczenia_uczen (in_pesel INTEGER, in_data_zakonczenia VARCHAR2) 
     IS
         check_data_rozpoczecia  DATE;
         check_data_zakonczenia  DATE;
@@ -825,18 +819,16 @@ CREATE OR REPLACE PROCEDURE aktual_data_zakonczenia_uczen (in_pesel INTEGER, in_
         IF check_data_zakonczenia IS NOT NULL 
             THEN dbms_output.put_line('Uczeń już nie uczy się w danej szkole. ');
             RETURN;
-        ELSIF check_data_rozpoczecia > in_data_zakonczenia 
+        ELSIF check_data_rozpoczecia > to_date(in_data_zakonczenia, 'dd-mm-yyyy')
         THEN dbms_output.put_line('Data zakonczenia nie moze być wcześniejsza niż data rozpoczęcia nauki. Prosze wpisac poprawna datę.');
             RETURN;
         END IF;
-
-        EXECUTE IMMEDIATE 
-        'UPDATE uczniowie
-        SET data_zakonczenia_nauki = :in_data_zakonczenia
+ 
+        UPDATE uczniowie
+        SET data_zakonczenia_nauki = to_date(in_data_zakonczenia, 'dd-mm-yyyy')
         WHERE id_dane_osobowe = (SELECT id_dane_osobowe 
 		                         FROM dane_osobowe 
-								 WHERE pesel = '||in_pesel||')'
-        USING IN in_data_zakonczenia, in_pesel;
+								 WHERE pesel = in_pesel);
         
         dbms_output.put_line('Uczniowi o peselu: ' || in_pesel || ' wpisano datę zakończenia nauki: ' || in_data_zakonczenia || '.');
     END;
@@ -1079,8 +1071,8 @@ CREATE OR REPLACE PROCEDURE usun_przedmiot_nauczyciela (in_nauczyciel INTEGER, i
 CREATE OR REPLACE PROCEDURE usun_przydzielone_godz (in_przedmiot VARCHAR2, in_klasa VARCHAR2) AS
         v_przedmiot_klasa      INTEGER;
         v_ilosc_godzin         INTEGER;
-        nauczyciel_przedmiot INTEGER;
-        check_rozszerzenie   VARCHAR2(1);
+        nauczyciel_przedmiot   INTEGER;
+        check_rozszerzenie     VARCHAR2(1);
         v_nazwa                VARCHAR2(30) := lower(in_przedmiot) || '_' || SUBSTR(in_klasa, 1, 1);
     BEGIN
         EXECUTE IMMEDIATE
@@ -1119,9 +1111,9 @@ CREATE OR REPLACE PROCEDURE usun_przydzielone_godz (in_przedmiot VARCHAR2, in_kl
 
 CREATE OR REPLACE PROCEDURE zakoncz_prace (in_nauczyciel INTEGER, in_data_zakonczenia DATE) AS
         V_data_rozpoczecia           DATE;
-        niepoprawna_data           EXCEPTION;
-        nauczyciel_jest_wychowawca EXCEPTION;
-        v_grupa                      INTEGER;
+        niepoprawna_data             EXCEPTION;
+        nauczyciel_jest_wychowawca   EXCEPTION;
+        v_grupa                     INTEGER;
     BEGIN
         EXECUTE IMMEDIATE
         'SELECT data_rozpoczecia_pracy
@@ -1158,13 +1150,13 @@ CREATE OR REPLACE PROCEDURE zakoncz_prace (in_nauczyciel INTEGER, in_data_zakonc
 
     EXCEPTION
         WHEN niepoprawna_data THEN
-            DBMS_OUTPUT.PUT_LINE('data zakonczenia nie moze byc mniejsza od daty rozpoczecia!');
+            DBMS_OUTPUT.PUT_LINE('Data zakonczenia nie moze byc mniejsza od daty rozpoczecia!');
             RETURN;
         WHEN nauczyciel_jest_wychowawca THEN
-            DBMS_OUTPUT.PUT_LINE('nauczyciel jest aktualnie wychowawcÄ!');
+            DBMS_OUTPUT.PUT_LINE('Nauczyciel jest aktualnie wychowawcą!');
             RETURN;
         WHEN NO_DATA_FOUND THEN
-            DBMS_OUTPUT.PUT_LINE('nieprawidlowe id nauczyciela!');
+            DBMS_OUTPUT.PUT_LINE('Nieprawidlowe id nauczyciela!');
             RETURN;
         WHEN OTHERS THEN
             RAISE;
