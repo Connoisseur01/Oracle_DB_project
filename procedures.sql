@@ -1311,95 +1311,145 @@ BEGIN
     END LOOP;
 END;
 
-PROCEDURE wypisz_oceny_ucznia ( in_pesel INTEGER ) IS
-        CURSOR c1 IS
-        SELECT  p.nazwa_przedmiotu, pu.srednia_ocen, pu.ocena_koncowa, pu.id_przedmioty_uczen
-          FROM uczniowie        u
-          LEFT JOIN przedmioty_uczen pu ON pu.id_ucznia      = u.id_ucznia
-          LEFT JOIN przedmioty       p  ON p.id_przedmiotu   = pu.id_przedmiotu
-          LEFT JOIN grupy            g  ON g.id_grupy        = u.id_grupy
-          LEFT JOIN dane_osobowe     d  ON d.id_dane_osobowe = u.id_dane_osobowe
-         WHERE substr(p.nazwa_przedmiotu, length(p.nazwa_przedmiotu), 1) = substr(g.id_klasy, 1, 1)
-           AND d.pesel = in_pesel;
+PROCEDURE wypisz_oceny_ucznia (in_pesel INTEGER	) IS
 
-        c2          SYS_REFCURSOR;
-        
-        v_ocena     NUMBER;
-        v_imie      dane_osobowe.imie%TYPE;
-        v_nazwisko  dane_osobowe.nazwisko%TYPE;
-        v_id_klasy  grupy.id_klasy%TYPE;
-    BEGIN
-        EXECUTE IMMEDIATE
-        'SELECT imie, nazwisko, g.id_klasy
-         FROM uczniowie         u
-         LEFT JOIN dane_osobowe d ON d.id_dane_osobowe = u.id_dane_osobowe
-         LEFT JOIN grupy        g ON g.id_grupy = u.id_grupy
-         WHERE pesel = '||in_pesel
-        INTO v_imie, v_nazwisko, v_id_klasy;
+		CURSOR c1 IS
+		SELECT p.nazwa_przedmiotu, pu.srednia_ocen, pu.ocena_koncowa, pu.id_przedmioty_uczen
+		  FROM uczniowie        u
+		  LEFT JOIN przedmioty_uczen pu ON pu.id_ucznia = u.id_ucznia
+		  LEFT JOIN przedmioty       p  ON p.id_przedmiotu = pu.id_przedmiotu
+		  LEFT JOIN grupy            g  ON g.id_grupy = u.id_grupy
+		  LEFT JOIN dane_osobowe     d  ON d.id_dane_osobowe = u.id_dane_osobowe
+		 WHERE substr(p.nazwa_przedmiotu, length(p.nazwa_przedmiotu), 1) = substr(g.id_klasy, 1, 1)
+		   AND d.pesel = in_pesel;
 
-        dbms_output.put_line(v_imie || ' ' || v_nazwisko || ' klasa ' || v_id_klasy);
-        dbms_output.put_line('Lista przedmiotów i ocen ');
-        dbms_output.put('------------------------');
-        
-        FOR w IN c1 LOOP
-            dbms_output.new_line;
-            dbms_output.put(rpad(initcap(substr(w.nazwa_przedmiotu, 1, length(w.nazwa_przedmiotu) - 2)) || ': ',21,' '));
+		c2       SYS_REFCURSOR;
+		
+		v_ocena                NUMBER;
+		v_imie                 dane_osobowe.imie%TYPE;
+		v_nazwisko             dane_osobowe.nazwisko%TYPE;
+		v_id_klasy             grupy.id_klasy%TYPE;
+		check_pesel            INTEGER;
+		check_data_zakonczenia DATE;
+	BEGIN
+		BEGIN
+			EXECUTE IMMEDIATE 'SELECT  d.pesel         , u.data_zakonczenia_nauki
+            FROM uczniowie    u
+            JOIN dane_osobowe d ON d.id_dane_osobowe = u.id_dane_osobowe
+            JOIN grupy        g ON g.id_grupy        = u.id_grupy
+            WHERE pesel = ' || in_pesel || ' 
+            AND rola LIKE ''%u%'' '
+			INTO    check_pesel    , check_data_zakonczenia;
+			
+		EXCEPTION
+			WHEN no_data_found THEN
+				dbms_output.put_line('Brak ucznia o takim peselu w bazie. ');
+				RETURN;
+		END;
 
-            OPEN c2 FOR 'select ocena
+		IF check_data_zakonczenia IS NOT NULL 
+		THEN dbms_output.put_line('Uczeń już nie uczy się w danej szkole. Pokazano oceny z ostatniej klasy ucznia.');
+		END IF;
+		
+		EXECUTE IMMEDIATE 
+		'SELECT  imie, nazwisko, g.id_klasy
+        FROM uczniowie         u
+        LEFT JOIN dane_osobowe d ON d.id_dane_osobowe = u.id_dane_osobowe
+        LEFT JOIN grupy        g ON g.id_grupy        = u.id_grupy
+        WHERE pesel = ' || in_pesel
+		  INTO v_imie, v_nazwisko, v_id_klasy;
+		  
+		dbms_output.put_line(v_imie || ' ' || v_nazwisko || ' klasa ' || v_id_klasy);
+		dbms_output.put_line('Lista przedmiotów i ocen ');
+		dbms_output.put('------------------------');
+		
+		FOR w IN c1 LOOP
+			dbms_output.new_line;
+			dbms_output.put(rpad(initcap(substr(w.nazwa_przedmiotu, 1, length(w.nazwa_przedmiotu) - 2)) || ': ', 21, ' '));
+
+			OPEN c2 FOR 'SELECT ocena
+                     FROM oceny
+                     WHERE id_przedmioty_uczen = ' || w.id_przedmioty_uczen;
+
+			LOOP
+				FETCH c2 INTO v_ocena;
+				EXIT WHEN c2%notfound;
+				dbms_output.put(v_ocena || '; ');
+			END LOOP;
+			CLOSE c2;
+			
+			dbms_output.put('Średnia ocen: ' || w.srednia_ocen || ' Ocena koncowa: ' || w.ocena_koncowa);
+		END LOOP;
+	END;
+
+	PROCEDURE wypisz_oceny_per_przedmiot_klasa (in_id_klasy VARCHAR2, in_przedmiot  VARCHAR2) IS
+
+		CURSOR c1 IS
+		SELECT imie, nazwisko, g.id_klasy, id_przedmioty_uczen
+		  FROM uczniowie             u
+		  LEFT JOIN dane_osobowe     d  ON d.id_dane_osobowe = u.id_dane_osobowe
+		  LEFT JOIN grupy            g  ON g.id_grupy        = u.id_grupy
+		  LEFT JOIN klasy            k  ON k.id_klasy        = g.id_klasy
+		  LEFT JOIN przedmioty_klasy pk ON pk.id_klasy       = k.id_klasy
+		  LEFT JOIN przedmioty       p  ON p.id_przedmiotu   = pk.id_przedmiotu
+		  LEFT JOIN przedmioty_uczen pu ON pu.id_ucznia      = u.id_ucznia AND pu.id_przedmiotu = p.id_przedmiotu
+		 WHERE g.id_klasy = lower(in_id_klasy)
+		   AND nazwa_przedmiotu = lower(in_przedmiot || '_' || substr(in_id_klasy, 1, 1))
+		 ORDER BY nazwisko;
+
+		c2   SYS_REFCURSOR;
+		
+		v_ocena         NUMBER;
+		check_klasy     VARCHAR2(2);
+		check_przedmiot VARCHAR2(25);
+	BEGIN
+		BEGIN
+		EXECUTE IMMEDIATE
+			'SELECT id_klasy
+			 FROM grupy
+			 WHERE data_zakonczenia IS NULL
+			  AND id_klasy = lower('''||in_id_klasy||''')'
+                INTO check_klasy;
+				
+		EXCEPTION
+			WHEN no_data_found THEN
+				dbms_output.put_line('Niepoprawna klasa. ');
+				RETURN;
+		END;
+
+		BEGIN
+		EXECUTE IMMEDIATE
+			'SELECT p.nazwa_przedmiotu
+			 FROM przedmioty_klasy pk
+			 LEFT JOIN grupy            g ON g.id_klasy = pk.id_klasy
+			 LEFT JOIN przedmioty       p ON pk.id_przedmiotu = p.id_przedmiotu
+			 WHERE data_zakonczenia IS NULL
+			  AND pk.id_klasy = lower('''||in_id_klasy||''')
+			  AND nazwa_przedmiotu = lower('''||in_przedmiot||''' || ''_'' || substr('''||in_id_klasy||''', 1, 1))'
+			   INTO check_przedmiot;
+
+		EXCEPTION
+			WHEN no_data_found THEN
+				dbms_output.put_line('Niepoprawna nazwa przedmiotu. ');
+				RETURN;
+		END;
+
+		dbms_output.put_line('Klasa: ' || in_id_klasy || ', Przedmiot: ' || initcap(in_przedmiot));
+
+		FOR w IN c1 LOOP
+			dbms_output.new_line;
+			dbms_output.put(rpad(w.nazwisko || ', ' || w.imie || ': ', 25, ' '));
+
+			OPEN c2 FOR 'select ocena
                      from oceny
                      where id_przedmioty_uczen = ' || w.id_przedmioty_uczen;
-
-            LOOP
-                FETCH c2 INTO v_ocena;
-                EXIT WHEN c2%notfound;
-                dbms_output.put(v_ocena || '; ');
-            END LOOP;
-
-            CLOSE c2;
-            dbms_output.put('Średnia ocen: ' || w.srednia_ocen || ' Ocena koncowa: ' || w.ocena_koncowa);
-
-        END LOOP;
-
-    END;
-
-PROCEDURE wypisz_oceny_per_przedmiot_klasa (
-          in_id_klasy  VARCHAR2
-        , in_przedmiot VARCHAR2) 
-        IS
-        CURSOR c1 IS
-        SELECT imie, nazwisko, g.id_klasy, id_przedmioty_uczen
-          FROM uczniowie        u
-          LEFT JOIN dane_osobowe     d  ON d.id_dane_osobowe = u.id_dane_osobowe
-          LEFT JOIN grupy            g  ON g.id_grupy        = u.id_grupy
-          LEFT JOIN klasy            k  ON k.id_klasy        = g.id_klasy
-          LEFT JOIN przedmioty_klasy pk ON pk.id_klasy       = k.id_klasy
-          LEFT JOIN przedmioty       p  ON p.id_przedmiotu   = pk.id_przedmiotu
-          LEFT JOIN przedmioty_uczen pu ON pu.id_ucznia      = u.id_ucznia
-           AND pu.id_przedmiotu = p.id_przedmiotu
-         WHERE g.id_klasy = in_id_klasy
-           AND nazwa_przedmiotu = in_przedmiot||'_'||substr(in_id_klasy,1,1)
-         ORDER BY nazwisko;
-
-        c2      SYS_REFCURSOR;
-        v_ocena NUMBER;
-    BEGIN
-        dbms_output.put_line('Klasa: ' || in_id_klasy || ', Przedmiot: ' || initcap(in_przedmiot));
-        FOR w IN c1 LOOP
-            dbms_output.new_line;
-            dbms_output.put(rpad(w.nazwisko || ', ' || w.imie || ': ',25, ' '));
-
-            OPEN c2 FOR 'select ocena
-                     from oceny
-                     where id_przedmioty_uczen = ' || w.id_przedmioty_uczen;
-
-            LOOP
-                FETCH c2 INTO v_ocena;
-                EXIT WHEN c2%notfound;
-                dbms_output.put(v_ocena || '; ');
-            END LOOP;
-
-            CLOSE c2;
-        END LOOP;
-
-    END;
+			LOOP
+				FETCH c2 INTO v_ocena;
+				EXIT WHEN c2%notfound;
+				dbms_output.put(v_ocena || '; ');
+			END LOOP;
+			CLOSE c2;
+			
+		END LOOP;
+	END;
 END raporty;    
