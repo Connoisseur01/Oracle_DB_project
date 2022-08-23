@@ -3,7 +3,6 @@
 DEFINE d_user_id = '&user_id'
 DEFINE d_pass = '&password'
 DEFINE d_network_alias = '&network_alias'
-DEFINE d_sep = ','
 
 -- wylacz klucze obce
 
