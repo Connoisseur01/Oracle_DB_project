@@ -1030,7 +1030,6 @@ PROCEDURE usun_przedmiot_nauczyciela (in_nauczyciel INTEGER, in_przedmiot VARCHA
     EXCEPTION
         WHEN brak_danych THEN
             DBMS_OUTPUT.PUT_LINE('Nieprawidłowa nazwa przedmiotu lub id nauczyciela!');
-            RETURN;
         WHEN others THEN
             RAISE;
     END;
@@ -1063,7 +1062,6 @@ PROCEDURE usun_przydzielone_godz (in_przedmiot VARCHAR2, in_klasa VARCHAR2) AS
     EXCEPTION
         WHEN NO_DATA_FOUND THEN
             DBMS_OUTPUT.PUT_LINE('nieprawidlowa nazwa przedmiotu lub id klasy!');
-            RETURN;
         WHEN OTHERS THEN
             RAISE;
     END;
@@ -1102,13 +1100,10 @@ PROCEDURE zakoncz_prace (in_nauczyciel INTEGER, in_data_zakonczenia VARCHAR2) AS
     EXCEPTION
         WHEN niepoprawna_data THEN
             DBMS_OUTPUT.PUT_LINE('Data zakonczenia nie moze byc mniejsza od daty rozpoczecia!');
-            RETURN;
         WHEN nauczyciel_jest_wychowawca THEN
             DBMS_OUTPUT.PUT_LINE('Nauczyciel jest aktualnie wychowawcą!');
-            RETURN;
         WHEN NO_DATA_FOUND THEN
             DBMS_OUTPUT.PUT_LINE('Nieprawidlowe id nauczyciela!');
-            RETURN;
         WHEN OTHERS THEN
             RAISE;
     END;
