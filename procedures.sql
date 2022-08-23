@@ -265,132 +265,255 @@ END populate;
 
 --przed koncem roku szkolnego
 
+
+
 --wpisanie oceny jednostkowej 
 
-CREATE OR REPLACE PROCEDURE wpisanie_oceny (in_pesel INTEGER, in_nazwa_przedmiotu VARCHAR2, in_ocena INTEGER) IS
-        check_data_zakonczenia  DATE;
-        check_pesel             INTEGER;
-        check_przedmiot         przedmioty.nazwa_przedmiotu%TYPE;
-        v_id_przedmioty_uczen   INTEGER;
-    BEGIN
-        IF in_ocena NOT IN ( 1, 1.5, 2, 2.5, 3, 3.5 , 4, 4.5 , 5, 5.5, 6 ) THEN
-            DBMS_OUTPUT.PUT_LINE('Prosze wpisac ocene w skali 1-6 (z polowkami).');
-            RETURN;
-        END IF;
+CREATE OR REPLACE PACKAGE pckge_uczniowie AS
 
+    PROCEDURE wpisanie_oceny (in_pesel INTEGER, in_nazwa_przedmiotu VARCHAR2, in_ocena INTEGER);
+    PROCEDURE wpisanie_oceny_koncowej (in_pesel INTEGER, in_nazwa_przedmiotu VARCHAR2, in_ocena INTEGER);
+    PROCEDURE aktual_data_zakonczenia_uczen (in_pesel INTEGER, in_data_zakonczenia DATE);
+    PROCEDURE zmiana_kierunku (in_pesel INTEGER, in_nowy_kierunek VARCHAR2);
+
+END pckge_uczniowie;
+/
+
+CREATE OR REPLACE PACKAGE BODY pckge_uczniowie AS
+
+    PROCEDURE wpisanie_oceny (in_pesel INTEGER, in_nazwa_przedmiotu VARCHAR2, in_ocena INTEGER) IS
+            check_data_zakonczenia  DATE;
+            check_pesel             INTEGER;
+            check_przedmiot         przedmioty.nazwa_przedmiotu%TYPE;
+            v_id_przedmioty_uczen   INTEGER;
         BEGIN
-            EXECUTE IMMEDIATE
-            'SELECT  d.pesel         , u.data_zakonczenia_nauki
-            FROM uczniowie    u
-            JOIN dane_osobowe d ON d.id_dane_osobowe = u.id_dane_osobowe
-            JOIN grupy        g ON g.id_grupy        = u.id_grupy
-            WHERE pesel = ' ||in_pesel||' 
-            AND rola LIKE ''%u%'' '
-            INTO    check_pesel     , check_data_zakonczenia;
-
-        EXCEPTION
-            WHEN no_data_found THEN
-                dbms_output.put_line('Brak ucznia o takim peselu w bazie. ');
+            IF in_ocena NOT IN ( 1, 1.5, 2, 2.5, 3, 3.5 , 4, 4.5 , 5, 5.5, 6 ) THEN
+                DBMS_OUTPUT.PUT_LINE('Prosze wpisac ocene w skali 1-6 (z polowkami).');
                 RETURN;
-        END;
+            END IF;
 
-        IF check_data_zakonczenia IS NOT NULL THEN
-            dbms_output.put_line('Uczeń już nie uczy się w szkole. ');
-            RETURN;
-        END IF;
-        
-        BEGIN
-            EXECUTE IMMEDIATE
-            'SELECT     nazwa_przedmiotu    , id_przedmioty_uczen
-            FROM uczniowie u
-            JOIN dane_osobowe          d  ON d.id_dane_osobowe = u.id_dane_osobowe
-            JOIN grupy                 g  ON g.id_grupy        = u.id_grupy
-            LEFT JOIN przedmioty_uczen pu ON pu.id_ucznia      = u.id_ucznia
-            JOIN przedmioty            p  ON p.id_przedmiotu   = pu.id_przedmiotu
-            WHERE substr(nazwa_przedmiotu, length(nazwa_przedmiotu), 1) = substr(g.id_klasy, 1, 1)
-            AND pesel = ' ||in_pesel||'
-            AND rola LIKE ''%u%''
-            AND nazwa_przedmiotu = ( lower('''||in_nazwa_przedmiotu||''') || ''_'' || substr(g.id_klasy, 1, 1) )' -- Å¼eby nie musiec wpisywac numerka w nazwie
-            INTO        check_przedmiot     , v_id_przedmioty_uczen;
+            BEGIN
+                EXECUTE IMMEDIATE
+                'SELECT  d.pesel         , u.data_zakonczenia_nauki
+                FROM uczniowie    u
+                JOIN dane_osobowe d ON d.id_dane_osobowe = u.id_dane_osobowe
+                JOIN grupy        g ON g.id_grupy        = u.id_grupy
+                WHERE pesel = ' ||in_pesel||' 
+                AND rola LIKE ''%u%'' '
+                INTO    check_pesel     , check_data_zakonczenia;
 
-        EXCEPTION
-            WHEN no_data_found THEN
-                dbms_output.put_line('Niepoprawna nazwa przedmiotu. ');
+            EXCEPTION
+                WHEN no_data_found THEN
+                    dbms_output.put_line('Brak ucznia o takim peselu w bazie. ');
+                    RETURN;
+            END;
+
+            IF check_data_zakonczenia IS NOT NULL THEN
+                dbms_output.put_line('Uczeń już nie uczy się w szkole. ');
                 RETURN;
-        END;
+            END IF;
+            
+            BEGIN
+                EXECUTE IMMEDIATE
+                'SELECT     nazwa_przedmiotu    , id_przedmioty_uczen
+                FROM uczniowie u
+                JOIN dane_osobowe          d  ON d.id_dane_osobowe = u.id_dane_osobowe
+                JOIN grupy                 g  ON g.id_grupy        = u.id_grupy
+                LEFT JOIN przedmioty_uczen pu ON pu.id_ucznia      = u.id_ucznia
+                JOIN przedmioty            p  ON p.id_przedmiotu   = pu.id_przedmiotu
+                WHERE substr(nazwa_przedmiotu, length(nazwa_przedmiotu), 1) = substr(g.id_klasy, 1, 1)
+                AND pesel = ' ||in_pesel||'
+                AND rola LIKE ''%u%''
+                AND nazwa_przedmiotu = ( lower('''||in_nazwa_przedmiotu||''') || ''_'' || substr(g.id_klasy, 1, 1) )' -- Å¼eby nie musiec wpisywac numerka w nazwie
+                INTO        check_przedmiot     , v_id_przedmioty_uczen;
+
+            EXCEPTION
+                WHEN no_data_found THEN
+                    dbms_output.put_line('Niepoprawna nazwa przedmiotu. ');
+                    RETURN;
+            END;
 
         INSERT INTO oceny (id_przedmioty_uczen    ,ocena     ,timestamp_oceny)
                VALUES     (v_id_przedmioty_uczen  ,in_ocena  ,systimestamp   );
-        
-        DBMS_OUTPUT.PUT_LINE('Uczniowi o peselu: '|| in_pesel || ' wpisano ocenę: '|| in_ocena|| ' z przedmiotu: '|| in_nazwa_przedmiotu);
-
-    EXECUTE IMMEDIATE
-        'UPDATE przedmioty_uczen
-           SET
-            srednia_ocen = ( SELECT AVG(ocena)
-                               FROM oceny 
-                              WHERE id_przedmioty_uczen = '||v_id_przedmioty_uczen|| ')
-                WHERE id_przedmioty_uczen = '||v_id_przedmioty_uczen ;  
-    END;
-/
-
-CREATE OR REPLACE PROCEDURE wpisanie_oceny_koncowej (in_pesel INTEGER, in_nazwa_przedmiotu VARCHAR2, in_ocena INTEGER) IS
-        check_data_zakonczenia  DATE;
-        check_pesel             INTEGER;
-        check_przedmiot         przedmioty.nazwa_przedmiotu%TYPE;
-        v_id_przedmioty_uczen   INTEGER;
-    BEGIN
-        IF in_ocena NOT IN ( 1, 2, 3, 4, 5, 6 ) THEN
-            dbms_output.put_line('Prosze wpisac pelna ocene w skali 1-6.');
-            RETURN;
-        END IF;
-
-        BEGIN
-            EXECUTE IMMEDIATE
-            'SELECT  d.pesel         , u.data_zakonczenia_nauki
-            FROM uczniowie    u
-            JOIN dane_osobowe d ON d.id_dane_osobowe = u.id_dane_osobowe
-            JOIN grupy        g ON g.id_grupy        = u.id_grupy
-            WHERE pesel = ' ||in_pesel||' 
-            AND rola LIKE ''%u%'' '
-            INTO    check_pesel     , check_data_zakonczenia;
-
-        EXCEPTION
-            WHEN no_data_found THEN
-                dbms_output.put_line('Brak ucznia o takim peselu w bazie. ');
-                RETURN;
-        END;
-
-        IF check_data_zakonczenia IS NOT NULL THEN
-            dbms_output.put_line('Uczeń już nie uczy się w danej szkole. ');
-            RETURN;
-        END IF;
-        
-        BEGIN
-            EXECUTE IMMEDIATE
-            'SELECT  nazwa_przedmiotu    , id_przedmioty_uczen           
-            FROM uczniowie u
-            JOIN dane_osobowe           d  ON d.id_dane_osobowe = u.id_dane_osobowe
-            JOIN grupy                  g  ON g.id_grupy        = u.id_grupy
-            LEFT JOIN przedmioty_uczen  pu ON pu.id_ucznia      = u.id_ucznia
-            JOIN przedmioty             p  ON p.id_przedmiotu   = pu.id_przedmiotu
-            WHERE substr(nazwa_przedmiotu, length(nazwa_przedmiotu), 1) = substr(g.id_klasy, 1, 1)
-            AND pesel = in_pesel
-            AND rola LIKE ''%u%''
-            AND nazwa_przedmiotu = ( lower('||in_nazwa_przedmiotu||')||''_''|| substr(g.id_klasy, 1, 1) )' -- Å¼eby nie musiec wpisywac numerka w nazwie
-            INTO  check_przedmiot     , v_id_przedmioty_uczen;
             
-        EXCEPTION
-            WHEN no_data_found THEN
-                dbms_output.put_line('Niepoprawna nazwa przedmiotu. ');
-                RETURN;
+            DBMS_OUTPUT.PUT_LINE('Uczniowi o peselu: '|| in_pesel || ' wpisano ocenę: '|| in_ocena|| ' z przedmiotu: '|| in_nazwa_przedmiotu);
+
+        EXECUTE IMMEDIATE
+            'UPDATE przedmioty_uczen
+            SET
+                srednia_ocen = ( SELECT AVG(ocena)
+                                FROM oceny 
+                                WHERE id_przedmioty_uczen = '||v_id_przedmioty_uczen|| ')
+                    WHERE id_przedmioty_uczen = '||v_id_przedmioty_uczen ;  
         END;
 
-        EXECUTE IMMEDIATE 'UPDATE przedmioty_uczen
-                            SET ocena_koncowa = ' || in_ocena || ' 
-                            WHERE id_przedmioty_uczen = ' || v_id_przedmioty_uczen;
-    END;
 
+    PROCEDURE wpisanie_oceny_koncowej (in_pesel INTEGER, in_nazwa_przedmiotu VARCHAR2, in_ocena INTEGER) IS
+            check_data_zakonczenia  DATE;
+            check_pesel             INTEGER;
+            check_przedmiot         przedmioty.nazwa_przedmiotu%TYPE;
+            v_id_przedmioty_uczen   INTEGER;
+        BEGIN
+            IF in_ocena NOT IN ( 1, 2, 3, 4, 5, 6 ) THEN
+                dbms_output.put_line('Prosze wpisac pelna ocene w skali 1-6.');
+                RETURN;
+            END IF;
+
+            BEGIN
+                EXECUTE IMMEDIATE
+                'SELECT  d.pesel         , u.data_zakonczenia_nauki
+                FROM uczniowie    u
+                JOIN dane_osobowe d ON d.id_dane_osobowe = u.id_dane_osobowe
+                JOIN grupy        g ON g.id_grupy        = u.id_grupy
+                WHERE pesel = ' ||in_pesel||' 
+                AND rola LIKE ''%u%'' '
+                INTO    check_pesel     , check_data_zakonczenia;
+
+            EXCEPTION
+                WHEN no_data_found THEN
+                    dbms_output.put_line('Brak ucznia o takim peselu w bazie. ');
+                    RETURN;
+            END;
+
+            IF check_data_zakonczenia IS NOT NULL THEN
+                dbms_output.put_line('Uczeń już nie uczy się w danej szkole. ');
+                RETURN;
+            END IF;
+            
+            BEGIN
+                EXECUTE IMMEDIATE
+                'SELECT  nazwa_przedmiotu    , id_przedmioty_uczen           
+                FROM uczniowie u
+                JOIN dane_osobowe           d  ON d.id_dane_osobowe = u.id_dane_osobowe
+                JOIN grupy                  g  ON g.id_grupy        = u.id_grupy
+                LEFT JOIN przedmioty_uczen  pu ON pu.id_ucznia      = u.id_ucznia
+                JOIN przedmioty             p  ON p.id_przedmiotu   = pu.id_przedmiotu
+                WHERE substr(nazwa_przedmiotu, length(nazwa_przedmiotu), 1) = substr(g.id_klasy, 1, 1)
+                AND pesel = in_pesel
+                AND rola LIKE ''%u%''
+                AND nazwa_przedmiotu = ( lower('||in_nazwa_przedmiotu||')||''_''|| substr(g.id_klasy, 1, 1) )' -- Å¼eby nie musiec wpisywac numerka w nazwie
+                INTO  check_przedmiot     , v_id_przedmioty_uczen;
+                
+            EXCEPTION
+                WHEN no_data_found THEN
+                    dbms_output.put_line('Niepoprawna nazwa przedmiotu. ');
+                    RETURN;
+            END;
+
+            EXECUTE IMMEDIATE 'UPDATE przedmioty_uczen
+                                SET ocena_koncowa = ' || in_ocena || ' 
+                                WHERE id_przedmioty_uczen = ' || v_id_przedmioty_uczen;
+        END;
+
+
+
+    PROCEDURE aktual_data_zakonczenia_uczen (in_pesel INTEGER, in_data_zakonczenia DATE) IS
+            check_data_rozpoczecia  DATE;
+            check_data_zakonczenia  DATE;
+            check_pesel             INTEGER;
+        BEGIN
+            BEGIN
+                EXECUTE IMMEDIATE
+                'SELECT  d.pesel     , u.data_rozpoczecia_nauki  , u.data_zakonczenia_nauki             
+                FROM uczniowie    u
+                JOIN dane_osobowe d ON d.id_dane_osobowe = u.id_dane_osobowe
+                WHERE pesel = '||in_pesel||' AND rola like ''%u%'''
+                INTO    check_pesel , check_data_rozpoczecia    , check_data_zakonczenia;
+
+            EXCEPTION
+                WHEN no_data_found 
+                THEN dbms_output.put_line('Brak ucznia o takim peselu. ');
+                    RETURN;
+            END;
+
+            IF check_data_zakonczenia IS NOT NULL 
+                THEN dbms_output.put_line('Uczeń już nie uczy się w danej szkole. ');
+                RETURN;
+            ELSIF check_data_rozpoczecia > in_data_zakonczenia 
+            THEN dbms_output.put_line('Data zakonczenia nie moze być wcześniejsza niż data rozpoczęcia nauki. Prosze wpisac poprawna datę.');
+                RETURN;
+            END IF;
+
+            EXECUTE IMMEDIATE 
+            'UPDATE uczniowie
+            SET data_zakonczenia_nauki = :in_data_zakonczenia
+            WHERE id_dane_osobowe = (SELECT id_dane_osobowe 
+                                    FROM dane_osobowe 
+                                    WHERE pesel = '||in_pesel||')'
+            USING IN in_data_zakonczenia, in_pesel;
+            
+            dbms_output.put_line('Uczniowi o peselu: ' || in_pesel || ' wpisano datę zakończenia nauki: ' || in_data_zakonczenia || '.');
+        END;
+
+    PROCEDURE zmiana_kierunku (in_pesel INTEGER, in_nowy_kierunek VARCHAR2) IS
+            check_data_zakonczenia  DATE;
+            check_pesel             INTEGER;
+            
+            v_stara_klasa           VARCHAR2(2); 
+            v_id_ucznia             INTEGER;
+            v_nowa_klasa            VARCHAR2(2); 
+            v_id_przedmiotu         INTEGER; 
+                    
+            out_nowa_grupa          INTEGER;
+                
+            c1                      SYS_REFCURSOR; 
+            
+        BEGIN
+            BEGIN
+                EXECUTE IMMEDIATE
+                'SELECT  u.id_ucznia,  d.pesel     , u.data_zakonczenia_nauki   , g.id_klasy
+                FROM uczniowie    u
+                JOIN dane_osobowe d ON d.id_dane_osobowe = u.id_dane_osobowe
+                JOIN grupy        g ON g.id_grupy = u.id_grupy
+                WHERE pesel = '||in_pesel||' AND rola like ''%u%'''
+                INTO    v_id_ucznia,  check_pesel  , check_data_zakonczenia    , v_stara_klasa;
+
+            EXCEPTION
+                WHEN no_data_found 
+                THEN dbms_output.put_line('Brak ucznia o takim peselu. ');
+                    RETURN;
+            END;
+
+            IF check_data_zakonczenia IS NOT NULL 
+                THEN dbms_output.put_line('Uczeń już nie uczy się w danej szkole. ');
+                RETURN;
+                
+            ELSIF lower(substr(v_stara_klasa,2,1)) = lower(in_nowy_kierunek)
+            THEN dbms_output.put_line('Nowy kierunek nie może być taki sam jak wcześniejszy. Prosze wpisac poprawny nowy kierunek. ');
+                RETURN;
+            END IF;
+
+            EXECUTE IMMEDIATE
+            'SELECT g.id_grupy    , g.id_klasy 
+            FROM grupy g
+            JOIN klasy k on  g.id_klasy = k.id_klasy 
+            WHERE k.id_klasy like lower(substr('''||v_stara_klasa||''',1,1))||lower('''||in_nowy_kierunek||''')'
+            INTO    out_nowa_grupa, v_nowa_klasa; 
+
+            EXECUTE IMMEDIATE 'UPDATE uczniowie
+                                SET id_grupy = '||out_nowa_grupa||
+                                'WHERE id_dane_osobowe = (SELECT id_dane_osobowe 
+                                                            FROM dane_osobowe 
+                                                            WHERE pesel = ' || in_pesel || ')';
+                                
+            dbms_output.put_line('Uczniowi o peselu: ' || in_pesel || ' zmieniono klase z : ' || v_stara_klasa || ' na '||substr(v_stara_klasa,1,1)||lower(in_nowy_kierunek));
+
+            OPEN c1 FOR 'SELECT ' || v_id_ucznia || ',   p.id_przedmiotu 
+                                            FROM przedmioty_klasy pk
+                                            RIGHT JOIN przedmioty p     ON p.id_przedmiotu = pk.id_przedmiotu
+                                            WHERE id_klasy = '''||v_nowa_klasa||'''  ';
+            LOOP
+                FETCH c1 INTO v_id_ucznia, v_id_przedmiotu;
+                EXIT WHEN c1%notfound;
+                
+                INSERT  INTO przedmioty_uczen ( id_ucznia   , id_przedmiotu     ) 
+                        VALUES                ( v_id_ucznia , v_id_przedmiotu   );
+            END LOOP;
+            CLOSE c1;
+
+        END;
+
+END pckge_uczniowie;
 /
 
 CREATE OR REPLACE PACKAGE po_koncu_roku AS  
@@ -670,7 +793,7 @@ CREATE OR REPLACE PROCEDURE dodaj_osobe
         BEGIN
         SELECT pesel       , numer_telefonu       , email       , adres_zamieszkania , rola
 		  INTO check_pesel , check_numer_telefonu , check_email , check_adres        , check_rola
-          FROM dane_osobowe
+              FROM dane_osobowe
          WHERE pesel = in_pesel;
 
         EXCEPTION
@@ -690,7 +813,7 @@ CREATE OR REPLACE PROCEDURE dodaj_osobe
                 WHERE pesel = '||in_pesel;
                 dbms_output.put_line('Dodano role do istniejacego rekordu');
                 
-            ELSE dbms_output.put_line('Osoba o identycznych danych istnieje już w bazie.');
+            ELSE dbms_output.put_line('Osoba o identycznych danych istnieje juz w bazie.');
             END IF;
 
             IF check_numer_telefonu <> in_numer_telefonu THEN
@@ -796,115 +919,25 @@ CREATE OR REPLACE PROCEDURE usun_dane_osob (in_pesel INTEGER) IS
         END;
 /
 
-CREATE OR REPLACE PROCEDURE aktual_data_zakonczenia_uczen (in_pesel INTEGER, in_data_zakonczenia VARCHAR2) 
-    IS
-        check_data_rozpoczecia  DATE;
-        check_data_zakonczenia  DATE;
-        check_pesel             INTEGER;
-    BEGIN
-        BEGIN
-            EXECUTE IMMEDIATE
-            'SELECT  d.pesel     , u.data_rozpoczecia_nauki  , u.data_zakonczenia_nauki             
-             FROM uczniowie    u
-             JOIN dane_osobowe d ON d.id_dane_osobowe = u.id_dane_osobowe
-             WHERE pesel = '||in_pesel||' AND rola like ''%u%'''
-             INTO    check_pesel , check_data_rozpoczecia    , check_data_zakonczenia;
-
-        EXCEPTION
-            WHEN no_data_found 
-            THEN dbms_output.put_line('Brak ucznia o takim peselu. ');
-                RETURN;
-        END;
-
-        IF check_data_zakonczenia IS NOT NULL 
-            THEN dbms_output.put_line('Uczeń już nie uczy się w danej szkole. ');
-            RETURN;
-        ELSIF check_data_rozpoczecia > to_date(in_data_zakonczenia, 'dd-mm-yyyy')
-        THEN dbms_output.put_line('Data zakonczenia nie moze być wcześniejsza niż data rozpoczęcia nauki. Prosze wpisac poprawna datę.');
-            RETURN;
-        END IF;
- 
-        UPDATE uczniowie
-        SET data_zakonczenia_nauki = to_date(in_data_zakonczenia, 'dd-mm-yyyy')
-        WHERE id_dane_osobowe = (SELECT id_dane_osobowe 
-		                         FROM dane_osobowe 
-								 WHERE pesel = in_pesel);
-        
-        dbms_output.put_line('Uczniowi o peselu: ' || in_pesel || ' wpisano datę zakończenia nauki: ' || in_data_zakonczenia || '.');
-    END;
-/
-
-CREATE OR REPLACE PROCEDURE zmiana_kierunku (in_pesel INTEGER, in_nowy_kierunek VARCHAR2) IS
-        check_data_zakonczenia  DATE;
-        check_pesel             INTEGER;
-        
-        v_stara_klasa           VARCHAR2(2); 
-        v_id_ucznia             INTEGER;
-        v_nowa_klasa            VARCHAR2(2); 
-        v_id_przedmiotu         INTEGER; 
-                
-        out_nowa_grupa          INTEGER;
-            
-        c1                      SYS_REFCURSOR; 
-        
-    BEGIN
-        BEGIN
-            EXECUTE IMMEDIATE
-            'SELECT  u.id_ucznia,  d.pesel     , u.data_zakonczenia_nauki   , g.id_klasy
-             FROM uczniowie    u
-             JOIN dane_osobowe d ON d.id_dane_osobowe = u.id_dane_osobowe
-             JOIN grupy        g ON g.id_grupy = u.id_grupy
-             WHERE pesel = '||in_pesel||' AND rola like ''%u%'''
-             INTO    v_id_ucznia,  check_pesel  , check_data_zakonczenia    , v_stara_klasa;
-
-        EXCEPTION
-            WHEN no_data_found 
-            THEN dbms_output.put_line('Brak ucznia o takim peselu. ');
-                RETURN;
-        END;
-
-        IF check_data_zakonczenia IS NOT NULL 
-            THEN dbms_output.put_line('Uczeń już nie uczy się w danej szkole. ');
-            RETURN;
-            
-        ELSIF lower(substr(v_stara_klasa,2,1)) = lower(in_nowy_kierunek)
-        THEN dbms_output.put_line('Nowy kierunek nie może być taki sam jak wcześniejszy. Prosze wpisac poprawny nowy kierunek. ');
-            RETURN;
-        END IF;
-
-        EXECUTE IMMEDIATE
-        'SELECT g.id_grupy    , g.id_klasy 
-        FROM grupy g
-        JOIN klasy k on  g.id_klasy = k.id_klasy 
-        WHERE k.id_klasy like lower(substr('''||v_stara_klasa||''',1,1))||lower('''||in_nowy_kierunek||''')'
-        INTO    out_nowa_grupa, v_nowa_klasa; 
-
-        EXECUTE IMMEDIATE 'UPDATE uczniowie
-                            SET id_grupy = '||out_nowa_grupa||
-                            'WHERE id_dane_osobowe = (SELECT id_dane_osobowe 
-                                                        FROM dane_osobowe 
-                                                        WHERE pesel = ' || in_pesel || ')';
-                            
-        dbms_output.put_line('Uczniowi o peselu: ' || in_pesel || ' zmieniono klase z : ' || v_stara_klasa || ' na '||substr(v_stara_klasa,1,1)||lower(in_nowy_kierunek));
-
-        OPEN c1 FOR 'SELECT ' || v_id_ucznia || ',   p.id_przedmiotu 
-                                        FROM przedmioty_klasy pk
-                                        RIGHT JOIN przedmioty p     ON p.id_przedmiotu = pk.id_przedmiotu
-                                        WHERE id_klasy = '''||v_nowa_klasa||'''  ';
-        LOOP
-            FETCH c1 INTO v_id_ucznia, v_id_przedmiotu;
-            EXIT WHEN c1%notfound;
-            
-            INSERT  INTO przedmioty_uczen ( id_ucznia   , id_przedmiotu     ) 
-                    VALUES                ( v_id_ucznia , v_id_przedmiotu   );
-        END LOOP;
-        CLOSE c1;
-
-    END;
-/
 -- nauczyciele
 
-CREATE OR REPLACE PROCEDURE zmiana_wychowawcy (in_id_klasy VARCHAR2, in_id_wychowawcy INTEGER) IS
+CREATE OR REPLACE PACKAGE pckge_nauczyciele AS
+
+PROCEDURE zmiana_wychowawcy (in_id_klasy VARCHAR2, in_id_wychowawcy INTEGER);
+FUNCTION policz_godziny_nauczyciela(in_nauczyciel INTEGER) RETURN INTEGER;
+PROCEDURE przydziel_godziny (in_nauczyciel INTEGER, in_przedmiot VARCHAR2, in_klasa VARCHAR2);
+PROCEDURE usun_przedmiot_nauczyciela (in_nauczyciel INTEGER, in_przedmiot VARCHAR2, in_rozszerzenie BOOLEAN);
+PROCEDURE usun_przydzielone_godz (in_przedmiot VARCHAR2, in_klasa VARCHAR2);
+PROCEDURE zakoncz_prace (in_nauczyciel INTEGER, in_data_zakonczenia DATE);
+PROCEDURE zmien_max_godz (in_nauczyciel INTEGER, in_max_godz INTEGER);
+PROCEDURE obsadz_nauczyciela (in_nauczyciel INTEGER, in_przedmiot VARCHAR2, in_rozszerzenie BOOLEAN);
+
+END pckge_nauczyciele;
+/
+
+CREATE OR REPLACE PACKAGE BODY pckge_nauczyciele AS
+
+PROCEDURE zmiana_wychowawcy (in_id_klasy VARCHAR2, in_id_wychowawcy INTEGER) IS
 
         v_id_grupy         INTEGER;
         
@@ -969,9 +1002,8 @@ CREATE OR REPLACE PROCEDURE zmiana_wychowawcy (in_id_klasy VARCHAR2, in_id_wycho
                 
         dbms_output.put_line('Wpisano nauczyciela o id: '||in_id_wychowawcy||' jako wychowawce klasy '||lower(in_id_klasy)||'. ');
     END;
-/
 
-CREATE OR REPLACE FUNCTION policz_godziny_nauczyciela(in_nauczyciel INTEGER) RETURN INTEGER AS
+FUNCTION policz_godziny_nauczyciela(in_nauczyciel INTEGER) RETURN INTEGER AS
         v_ilosc_godz INTEGER;
     BEGIN
         EXECUTE IMMEDIATE
@@ -983,9 +1015,8 @@ CREATE OR REPLACE FUNCTION policz_godziny_nauczyciela(in_nauczyciel INTEGER) RET
         INTO v_ilosc_godz USING in_nauczyciel ;
         RETURN v_ilosc_godz;
     END;
-/
 
-CREATE OR REPLACE PROCEDURE przydziel_godziny (in_nauczyciel INTEGER, in_przedmiot VARCHAR2, in_klasa VARCHAR2) AS
+PROCEDURE przydziel_godziny (in_nauczyciel INTEGER, in_przedmiot VARCHAR2, in_klasa VARCHAR2) AS
         v_przedmiot_klasa INTEGER;
         v_ilosc_godzin    INTEGER;
         v_max_godz        INTEGER;
@@ -1027,9 +1058,8 @@ CREATE OR REPLACE PROCEDURE przydziel_godziny (in_nauczyciel INTEGER, in_przedmi
         WHEN OTHERS THEN
             RAISE;
     END; 
-/
 
-CREATE OR REPLACE PROCEDURE usun_przedmiot_nauczyciela (in_nauczyciel INTEGER, in_przedmiot VARCHAR2, in_rozszerzenie BOOLEAN) AS
+PROCEDURE usun_przedmiot_nauczyciela (in_nauczyciel INTEGER, in_przedmiot VARCHAR2, in_rozszerzenie BOOLEAN) AS
         check_count INTEGER;
         brak_danych EXCEPTION;
         v_nazwa       VARCHAR2(50) := lower(in_przedmiot) || '%';
@@ -1066,9 +1096,8 @@ CREATE OR REPLACE PROCEDURE usun_przedmiot_nauczyciela (in_nauczyciel INTEGER, i
         WHEN others THEN
             RAISE;
     END;
-/
 
-CREATE OR REPLACE PROCEDURE usun_przydzielone_godz (in_przedmiot VARCHAR2, in_klasa VARCHAR2) AS
+PROCEDURE usun_przydzielone_godz (in_przedmiot VARCHAR2, in_klasa VARCHAR2) AS
         v_przedmiot_klasa      INTEGER;
         v_ilosc_godzin         INTEGER;
         nauczyciel_przedmiot   INTEGER;
@@ -1107,13 +1136,12 @@ CREATE OR REPLACE PROCEDURE usun_przydzielone_godz (in_przedmiot VARCHAR2, in_kl
         WHEN OTHERS THEN
             RAISE;
     END;
-/
 
-CREATE OR REPLACE PROCEDURE zakoncz_prace (in_nauczyciel INTEGER, in_data_zakonczenia DATE) AS
+PROCEDURE zakoncz_prace (in_nauczyciel INTEGER, in_data_zakonczenia DATE) AS
         V_data_rozpoczecia           DATE;
         niepoprawna_data             EXCEPTION;
         nauczyciel_jest_wychowawca   EXCEPTION;
-        v_grupa                     INTEGER;
+        v_grupa                      INTEGER;
     BEGIN
         EXECUTE IMMEDIATE
         'SELECT data_rozpoczecia_pracy
@@ -1161,9 +1189,8 @@ CREATE OR REPLACE PROCEDURE zakoncz_prace (in_nauczyciel INTEGER, in_data_zakonc
         WHEN OTHERS THEN
             RAISE;
     END;
-/
 
-CREATE OR REPLACE PROCEDURE zmien_max_godz (in_nauczyciel INTEGER, in_max_godz INTEGER) AS
+PROCEDURE zmien_max_godz (in_nauczyciel INTEGER, in_max_godz INTEGER) AS
         nieprawidlowe_godziny   EXCEPTION;
         nauczyciel_nie_istnieje EXCEPTION;
     BEGIN
@@ -1184,15 +1211,13 @@ CREATE OR REPLACE PROCEDURE zmien_max_godz (in_nauczyciel INTEGER, in_max_godz I
     EXCEPTION
         WHEN nieprawidlowe_godziny THEN
             DBMS_OUTPUT.PUT_LINE('liczba maksymalnych godzin nie moce byc mniejsza niÅ¼ liczba przydzielonych godzin!');
-            RETURN;
         WHEN nauczyciel_nie_istnieje THEN
             DBMS_OUTPUT.PUT_LINE('nieprawidlowe id nauczyciela!');
         WHEN OTHERS THEN
             RAISE;
     END;
-/
 
-CREATE OR REPLACE PROCEDURE obsadz_nauczyciela (in_nauczyciel INTEGER, in_przedmiot VARCHAR2, in_rozszerzenie BOOLEAN) AS 
+PROCEDURE obsadz_nauczyciela (in_nauczyciel INTEGER, in_przedmiot VARCHAR2, in_rozszerzenie BOOLEAN) AS 
             v_id       INTEGER;
             v_nazwa    VARCHAR2(30) := in_przedmiot || '%';
             v_stmt VARCHAR2(400) := 'SELECT id_przedmiotu FROM przedmioty WHERE nazwa_przedmiotu LIKE :p ';
@@ -1218,10 +1243,11 @@ CREATE OR REPLACE PROCEDURE obsadz_nauczyciela (in_nauczyciel INTEGER, in_przedm
         EXCEPTION
             WHEN NO_DATA_FOUND THEN
                 DBMS_OUTPUT.PUT_LINE('nieprawidlowe dane!');
-                RETURN;
             WHEN OTHERS THEN
                 RAISE;
         END;
+
+END pckge_nauczyciele;
 /
 
 CREATE OR REPLACE PACKAGE raporty AS 
