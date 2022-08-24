@@ -1,4 +1,4 @@
---1 grupy -- wychowawca grupy , obecna klasa, rozszerzenie klasy 
+  --1 grupy -- wychowawca grupy , obecna klasa, rozszerzenie klasy 
 --2 uczniowie -- id_ucznia na imie i nazwisko 
 --3 nauczyciele -- id na imie i nazwisko 
 --4 przedmioty -- id na nazwy 
@@ -113,8 +113,18 @@ FROM przedmioty_uczen pu
 LEFT JOIN uczniowie u ON u.id_ucznia = pu.id_ucznia
 LEFT JOIN dane_osobowe d ON d.id_dane_osobowe  = u. id_dane_osobowe
 LEFT JOIN przedmioty p ON p.id_przedmiotu = pu.id_przedmiotu 
-LEFT JOIN grupy g ON g.id_grupy = u.id_grupy
+LEFT JOIN grupy g ON g.id_grupy = u.id_grupy;
 
+-- oceny
 
+CREATE OR REPLACE VIEW v_oceny AS
+SELECT imie "imie ucznia", nazwisko "nazwisko ucznia", nazwa_przedmiotu,
+CASE WHEN rozszerzenie = 'R' THEN 'rozszerzenie' ELSE 'podstawa' END as 'Rozszerzenie?', ocena, timestamp_oceny "data wystawienia"
+FROM oceny
+JOIN przedmioty_uczen USING (id_przedmioty_uczen)
+JOIN przedmioty USING (id_przedmiotu)
+JOIN uczniowie USING (id_ucznia)
+JOIN dane_osobowe USING (id_dane_osobowe)
+ORDER BY timestamp_oceny DESC;
 
 
