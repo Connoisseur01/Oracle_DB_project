@@ -1,0 +1,1 @@
+EXECUTE raporty.wyswietl_klasy
