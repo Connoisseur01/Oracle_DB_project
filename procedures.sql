@@ -261,7 +261,7 @@ CREATE OR REPLACE PACKAGE pckge_uczniowie AS
 
     PROCEDURE wpisanie_oceny                (in_pesel IN INTEGER, in_nazwa_przedmiotu IN VARCHAR2, in_ocena IN INTEGER);
     PROCEDURE wpisanie_oceny_koncowej       (in_pesel IN INTEGER, in_nazwa_przedmiotu IN VARCHAR2, in_ocena IN INTEGER);
-    PROCEDURE aktual_data_zakonczenia_uczen (in_pesel IN INTEGER, in_data_zakonczenia IN DATE);
+    PROCEDURE aktual_data_zakonczenia_uczen (in_pesel IN INTEGER, in_data_zakonczenia IN VARCHAR2);
     PROCEDURE zmiana_kierunku               (in_pesel IN INTEGER, in_nowy_kierunek IN VARCHAR2);
 
 END pckge_uczniowie;
@@ -395,8 +395,8 @@ CREATE OR REPLACE PACKAGE BODY pckge_uczniowie AS
         BEGIN
             BEGIN
                 SELECT  d.pesel     , u.data_rozpoczecia_nauki  , u.data_zakonczenia_nauki     
-			      INTO  check_pesel , check_data_rozpoczecia    , check_data_zakonczenia
-				  FROM uczniowie    u
+                  INTO  check_pesel , check_data_rozpoczecia    , check_data_zakonczenia
+                  FROM uczniowie    u
                   JOIN dane_osobowe d ON d.id_dane_osobowe = u.id_dane_osobowe
                  WHERE pesel = in_pesel AND rola like '%u%';
 
@@ -413,7 +413,7 @@ CREATE OR REPLACE PACKAGE BODY pckge_uczniowie AS
             THEN dbms_output.put_line('Data zakonczenia nie moze być wcześniejsza niż data rozpoczęcia nauki. Prosze wpisac poprawna datę.');
                 RETURN;
             END IF;
-			
+            
             UPDATE uczniowie
                SET data_zakonczenia_nauki = to_date(in_data_zakonczenia , 'dd-mm-yyyy')
                WHERE id_dane_osobowe = (SELECT id_dane_osobowe 
@@ -439,13 +439,12 @@ CREATE OR REPLACE PACKAGE BODY pckge_uczniowie AS
             
         BEGIN
             BEGIN
-                EXECUTE IMMEDIATE
-                'SELECT  u.id_ucznia,  d.pesel     , u.data_zakonczenia_nauki   , g.id_klasy
+              SELECT  u.id_ucznia,  d.pesel     , u.data_zakonczenia_nauki  , g.id_klasy
+                INTO  v_id_ucznia,  check_pesel , check_data_zakonczenia    , v_stara_klasa
                 FROM uczniowie    u
                 JOIN dane_osobowe d ON d.id_dane_osobowe = u.id_dane_osobowe
-                JOIN grupy        g ON g.id_grupy = u.id_grupy
-                WHERE pesel = '||in_pesel||' AND rola like ''%u%'''
-                INTO    v_id_ucznia,  check_pesel  , check_data_zakonczenia    , v_stara_klasa;
+                JOIN grupy        g ON g.id_grupy        = u.id_grupy
+               WHERE pesel = in_pesel AND rola like'%u%';
 
             EXCEPTION
                 WHEN no_data_found 
@@ -462,18 +461,17 @@ CREATE OR REPLACE PACKAGE BODY pckge_uczniowie AS
                 RETURN;
             END IF;
 
-            EXECUTE IMMEDIATE
-            'SELECT g.id_grupy    , g.id_klasy 
-            FROM grupy g
-            JOIN klasy k on  g.id_klasy = k.id_klasy 
-            WHERE k.id_klasy like lower(substr('''||v_stara_klasa||''',1,1))||lower('''||in_nowy_kierunek||''')'
-            INTO    out_nowa_grupa, v_nowa_klasa; 
+            SELECT g.id_grupy     , g.id_klasy 
+              INTO out_nowa_grupa , v_nowa_klasa
+              FROM grupy g
+              JOIN klasy k on  g.id_klasy = k.id_klasy 
+             WHERE k.id_klasy like (substr(v_stara_klasa,1,1))||lower(in_nowy_kierunek); 
 
-            EXECUTE IMMEDIATE 'UPDATE uczniowie
-                                SET id_grupy = '||out_nowa_grupa||
-                                'WHERE id_dane_osobowe = (SELECT id_dane_osobowe 
-                                                            FROM dane_osobowe 
-                                                            WHERE pesel = ' || in_pesel || ')';
+            UPDATE uczniowie
+                  SET id_grupy = out_nowa_grupa
+                  WHERE id_dane_osobowe = (SELECT id_dane_osobowe 
+                                           FROM dane_osobowe 
+                                           WHERE pesel = in_pesel);
                                 
             dbms_output.put_line('Uczniowi o peselu: ' || in_pesel || ' zmieniono klase z : ' || v_stara_klasa || ' na '||substr(v_stara_klasa,1,1)||lower(in_nowy_kierunek));
 
@@ -485,8 +483,8 @@ CREATE OR REPLACE PACKAGE BODY pckge_uczniowie AS
                 FETCH c1 INTO v_id_ucznia, v_id_przedmiotu;
                 EXIT WHEN c1%notfound;
                 
-                INSERT  INTO przedmioty_uczen ( id_ucznia   , id_przedmiotu     ) 
-                        VALUES                ( v_id_ucznia , v_id_przedmiotu   );
+                INSERT  INTO przedmioty_uczen (id_ucznia   , id_przedmiotu  ) 
+                        VALUES                (v_id_ucznia , v_id_przedmiotu);
             END LOOP;
             CLOSE c1;
 
@@ -726,8 +724,7 @@ END po_koncu_roku;
 /
 
 CREATE OR REPLACE PROCEDURE dodaj_osobe 
-    (
-          in_imie            IN dane_osobowe.imie%TYPE
+    (     in_imie            IN dane_osobowe.imie%TYPE
         , in_nazwisko        IN dane_osobowe.nazwisko%TYPE
         , in_numer_telefonu  IN dane_osobowe.numer_telefonu%TYPE
         , in_email           IN dane_osobowe.email%TYPE
@@ -760,10 +757,9 @@ CREATE OR REPLACE PROCEDURE dodaj_osobe
         
         IF check_pesel IS NOT NULL THEN
             IF regexp_substr(check_rola, '' || in_rola || '{1}') IS NULL THEN
-                EXECUTE IMMEDIATE
-                'UPDATE dane_osobowe
-                SET rola = ''rola'||in_rola||'''
-                WHERE pesel = '||in_pesel;
+                UPDATE dane_osobowe
+                   SET rola = rola||in_rola
+                 WHERE pesel = in_pesel;
                 dbms_output.put_line('Dodano role do istniejacego rekordu');
                 
             ELSE dbms_output.put_line('Osoba o identycznych danych istnieje juz w bazie.');
