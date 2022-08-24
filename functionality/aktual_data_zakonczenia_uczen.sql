@@ -1,7 +1,6 @@
-PROMPT podaj pesel ucznia: &&pesel
-PROMPT podaj datę zakończenia nauki (format dd-mm-yyyy): &&data
+ACCEPT pesel PROMPT "podaj pesel ucznia: "
+ACCEPT data PROMPT "podaj date zakonczenia nauki (format DD-MM-RRRR): "
 
-EXECUTE pckge_uczniowie.aktual_data_zakonczenia_uczen(in_pesel=>&pesel,in_data_zakonczenia=>'&data')
+EXECUTE pckge_uczniowie.aktual_data_zakonczenia_uczen(in_pesel => &pesel, in_data_zakonczenia => '&data');
 
-UNDEFINE pesel
-UNDEFINE data
+@@menu.sql
