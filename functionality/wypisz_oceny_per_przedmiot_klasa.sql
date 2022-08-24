@@ -5,3 +5,5 @@ EXECUTE raporty.wypisz_oceny_per_przedmiot_klasa(in_id_klasy=>'&klasa', in_przed
 
 UNDEFINE klasa
 UNDEFINE przedmiot
+
+@@menu.sql

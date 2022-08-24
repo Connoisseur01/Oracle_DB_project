@@ -5,3 +5,5 @@ EXECUTE pckge_uczniowie.zmiana_kierunku(in_pesel=>&pesel,in_nowy_kierunek=>'&now
 
 UNDEFINE pesel
 UNDEFINE nowy_kierunek
+
+@@menu.sql

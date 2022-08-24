@@ -10,3 +10,5 @@ EXECUTE przydziel_godziny (in_nauczyciel => &id_nauczyciela, in_przedmiot => '&n
 UNDEFINE id_nauczyciela
 UNDEFINE nazwa_przedmiotu
 UNDEFINE id_klasy
+
+@@menu.sql
