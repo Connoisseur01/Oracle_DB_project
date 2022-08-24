@@ -118,13 +118,13 @@ LEFT JOIN grupy g ON g.id_grupy = u.id_grupy;
 -- oceny
 
 CREATE OR REPLACE VIEW v_oceny AS
-SELECT imie "imie ucznia", nazwisko "nazwisko ucznia", nazwa_przedmiotu,
-CASE WHEN rozszerzenie = 'R' THEN 'rozszerzenie' ELSE 'podstawa' END as 'Rozszerzenie?', ocena, timestamp_oceny "data wystawienia"
+SELECT imie "imie ucznia", nazwisko "nazwisko ucznia",id_klasy "klasa", SUBSTR(nazwa_przedmiotu, 1, LENGTH(nazwa_przedmiotu) - 2) "przedmiot",
+CASE WHEN rozszerzenie = 'R' THEN 'rozszerzenie' ELSE 'podstawa' END as "Rozszerzenie?", ocena, to_char(timestamp_oceny, 'DD-MM-RRRR hh24:mi') "data wystawienia"
 FROM oceny
 JOIN przedmioty_uczen USING (id_przedmioty_uczen)
 JOIN przedmioty USING (id_przedmiotu)
 JOIN uczniowie USING (id_ucznia)
 JOIN dane_osobowe USING (id_dane_osobowe)
-ORDER BY timestamp_oceny DESC;
-
+JOIN grupy USING (id_grupy)
+ORDER BY id_klasy ASC, nazwisko ASC, imie ASC,nazwa_przedmiotu ASC, timestamp_oceny DESC;
 
