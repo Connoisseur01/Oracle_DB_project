@@ -176,7 +176,7 @@ CREATE OR REPLACE PACKAGE BODY populate AS
                     EXIT WHEN c1%notfound;
                     
 					INSERT INTO przedmioty_uczen (id_ucznia, id_przedmiotu) 
-                    VALUES (id_uczen, id_przedmiot)
+                    VALUES (id_uczen, id_przedmiot);
 
                 END LOOP;
 
@@ -572,8 +572,9 @@ CREATE OR REPLACE PACKAGE BODY po_koncu_roku AS
     BEGIN
         v_original_terr := sys_context('USERENV', 'NLS_TERRITORY');
         
-        ALTER SESSION 
-        SET NLS_territory= 'Poland';
+        EXECUTE IMMEDIATE 
+        'ALTER SESSION 
+        SET NLS_territory= ''Poland'' ';
         
         SELECT trunc(MAX(data_rozpoczecia) + 366, 'mm')
           INTO out_data_rozpoczecia
@@ -591,8 +592,9 @@ CREATE OR REPLACE PACKAGE BODY po_koncu_roku AS
             
         dbms_output.put_line('Wpisano rok zaczynajacy się: ' || out_data_rozpoczecia || ' oraz kończacy sie: ' || out_data_zakonczenia);
          
-        ALTER SESSION 
-        SET NLS_territory = v_original_terr;
+        EXECUTE IMMEDIATE 
+        'ALTER SESSION 
+        SET NLS_territory='''|| v_original_terr ||'''';
     END;
 
 PROCEDURE zdanie 
@@ -679,8 +681,7 @@ PROCEDURE niezdanie IS
            AND u.data_zakonczenia_nauki IS NULL 
            GROUP BY pu.id_ucznia, substr(id_klasy,2,1), id_klasy) 
            WHERE (niezdana_klasa=substr(id_klasy,1,1)-1 AND niezdana_klasa <>4)
-           OR (niezdana_klasa= 4 AND niezdana_klasa=substr(id_klasy,1,1))
-           ;
+           OR (niezdana_klasa= 4 AND niezdana_klasa=substr(id_klasy,1,1));
 
         v_id_nowa_grupa INTEGER;
         
@@ -842,9 +843,10 @@ CREATE OR REPLACE PROCEDURE aktual_dane_osob (in_pesel INTEGER, in_kolumna VARCH
                 RETURN;
         END; 
     BEGIN     
-        UPDATE dane_osobowe 
-        SET in_kolumna = in_aktualizacja
-        WHERE pesel = in_pesel; 
+        EXECUTE IMMEDIATE 
+        'UPDATE dane_osobowe 
+        SET '||in_kolumna||' = '''||in_aktualizacja||'''
+        WHERE pesel = '||in_pesel; 
         dbms_output.put_line( 'Zaktualizowano pole '||in_kolumna||' o wartość: '||in_aktualizacja|| ' dla osoby o peselu: '|| in_pesel||'.');
                
     EXCEPTION
@@ -885,7 +887,7 @@ FUNCTION policz_godziny_nauczyciela(in_nauczyciel INTEGER) RETURN INTEGER;
 PROCEDURE przydziel_godziny (in_nauczyciel INTEGER, in_przedmiot VARCHAR2, in_klasa VARCHAR2);
 PROCEDURE usun_przedmiot_nauczyciela (in_nauczyciel INTEGER, in_przedmiot VARCHAR2, in_rozszerzenie BOOLEAN);
 PROCEDURE usun_przydzielone_godz (in_przedmiot VARCHAR2, in_klasa VARCHAR2);
-PROCEDURE zakoncz_prace (in_nauczyciel INTEGER, in_data_zakonczenia DATE);
+PROCEDURE zakoncz_prace (in_nauczyciel INTEGER, in_data_zakonczenia VARCHAR2);
 PROCEDURE zmien_max_godz (in_nauczyciel INTEGER, in_max_godz INTEGER);
 PROCEDURE obsadz_nauczyciela (in_nauczyciel INTEGER, in_przedmiot VARCHAR2, in_rozszerzenie BOOLEAN);
 
@@ -1353,7 +1355,7 @@ PROCEDURE wypisz_oceny_ucznia (in_pesel INTEGER	) IS
 			LEFT JOIN przedmioty       p ON pk.id_przedmiotu = p.id_przedmiotu
 			WHERE data_zakonczenia IS NULL
 			  AND pk.id_klasy = lower(in_id_klasy)
-			  AND nazwa_przedmiotu = lower(in_przedmiot || ''_'' || substr(in_id_klasy, 1, 1));
+			  AND nazwa_przedmiotu = lower(in_przedmiot || '_' || substr(in_id_klasy, 1, 1));
 
 		EXCEPTION
 			WHEN no_data_found THEN
