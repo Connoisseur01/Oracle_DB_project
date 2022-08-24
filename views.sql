@@ -6,10 +6,11 @@
 --6  przydzielone godziny / nauczyciel przedmiot -- imie nazwisko nauczyciela + nazwa przedmiotów
 -- rozszerzenie  - nie R tylko slowo albo tak albo coś 
 --7  przedmiot_uczen -- jaki przedmiot , jaka klasa , jaki 
+--8 .  -- oceny
 
 --powyżej done--
 
---8 .  not done -- oceny 
+ 
 
 --1
 CREATE OR REPLACE VIEW v_klasy AS
