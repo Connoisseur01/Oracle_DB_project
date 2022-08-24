@@ -5,3 +5,5 @@ EXECUTE pckge_nauczyciele.zmiana_wychowawcy(in_id_klasy=>'&klasa',in_id_wychowaw
 
 UNDEFINE klasa
 UNDEFINE id_wychowawcy
+
+@@menu.sql

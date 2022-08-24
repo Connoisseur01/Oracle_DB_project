@@ -7,3 +7,5 @@ EXECUTE pckge_uczniowie.wpisanie_oceny_koncowej(in_pesel=>&pesel,in_nazwa_przedm
 UNDEFINE pesel
 UNDEFINE nazwa_przedmiotu
 UNDEFINE ocena 
+
+@@menu.sql
