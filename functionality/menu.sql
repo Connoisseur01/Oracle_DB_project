@@ -15,6 +15,7 @@ PROMPT **********************   raporty   **********************
 PROMPT [12] wypisz oceny per przedmiot_klasa
 PROMPT [13] wypisz oceny ucznia
 PROMPT [14] wyswietl klasy
+PROMPT [15] wyswietl dostepnych nauczycieli
 ACCEPT opcja PROMPT "wybierz opcje: "
 
 COLUMN script NEW_VALUE v_script
@@ -34,6 +35,7 @@ SELECT CASE '&opcja'
        WHEN '12' THEN 'wypisz_oceny_per_przedmiot_klasa.sql'
        WHEN '13' THEN 'wypisz_oceny_ucznia.sql'
        WHEN '14' THEN 'wyswietl_klasy.sql'
+       WHEN '15' THEN 'pokaz_wolnych_nauczycieli.sql'
        ELSE 'menu.sql'
        END AS script
 FROM dual;
