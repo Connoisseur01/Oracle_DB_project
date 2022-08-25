@@ -1161,7 +1161,7 @@ CREATE OR REPLACE PACKAGE BODY raporty AS
 PROCEDURE pokaz_wolnych_nauczycieli (in_przedmiot IN VARCHAR2, in_klasa IN VARCHAR2) AS
         v_godziny            INTEGER;
         check_rozszerzenie   VARCHAR2(1);
-        v_nazwa              VARCHAR2(50) := in_przedmiot || SUBSTR(in_klasa, 1, 1);
+        v_nazwa              VARCHAR2(50) := lower(in_przedmiot) || '_' || SUBSTR(in_klasa, 1, 1);
     BEGIN
         SELECT ilosc_godzin_przedmiotu , rozszerzenie 
           INTO v_godziny               , check_rozszerzenie
@@ -1187,6 +1187,9 @@ PROCEDURE pokaz_wolnych_nauczycieli (in_przedmiot IN VARCHAR2, in_klasa IN VARCH
                     dbms_output.put_line(rec.id_nauczyciela || '. ' || rec.imie || ' ' || rec.nazwisko);
             END LOOP;
         END;
+    EXCEPTION
+        WHEN no_data_found THEN
+            dbms_output.put_line('wprowadzono bledne dane');
     END;
     
 PROCEDURE wyswietl_klasy IS
