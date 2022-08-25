@@ -15,28 +15,25 @@ PROMPT **********************   raporty   **********************
 PROMPT [12] wypisz oceny per przedmiot_klasa
 PROMPT [13] wypisz oceny ucznia
 PROMPT [14] wyswietl klasy
-PROMPT *********************************************************
-PROMPT [15] wyjdz
 ACCEPT opcja PROMPT "wybierz opcje: "
 
 COLUMN script NEW_VALUE v_script
 
 SELECT CASE '&opcja'
-       WHEN '1'  THEN 'obsadz_nauczyciela.sql'
-       WHEN '2'  THEN 'przydziel_godziny.sql'
-       WHEN '3'  THEN 'usun_przedmiot_nauczyciela.sql'
-       WHEN '4'  THEN 'usun_przydzielone_godz.sql'
-       WHEN '5'  THEN 'zakoncz_prace.sql'
-       WHEN '6'  THEN 'zmien_max_godz.sql'
-       WHEN '7'  THEN 'zmiana_wychowawcy.sql'
-       WHEN '8'  THEN 'aktual_data_zakonczenia_uczen.sql'
-       WHEN '9'  THEN 'wpisanie_oceny_koncowej.sql'
+       WHEN '1' THEN 'obsadz_nauczyciela.sql'
+       WHEN '2' THEN 'przydziel_godziny.sql'
+       WHEN '3' THEN 'usun_przedmiot_nauczyciela.sql'
+       WHEN '4' THEN 'usun_przydzielone_godz.sql'
+       WHEN '5' THEN 'zakoncz_prace.sql'
+       WHEN '6' THEN 'zmien_max_godz.sql'
+       WHEN '7' THEN 'zmiana_wychowawcy.sql'
+       WHEN '8' THEN 'aktual_data_zakonczenia_uczen.sql'
+       WHEN '9' THEN 'wpisanie_oceny_koncowej.sql'
        WHEN '10' THEN 'wpisanie_oceny.sql'
        WHEN '11' THEN 'zmiana_kierunku.sql'
        WHEN '12' THEN 'wypisz_oceny_per_przedmiot_klasa.sql'
        WHEN '13' THEN 'wypisz_oceny_ucznia.sql'
        WHEN '14' THEN 'wyswietl_klasy.sql'
-       WHEN '15' THEN RETURN;
        ELSE 'menu.sql'
        END AS script
 FROM dual;
