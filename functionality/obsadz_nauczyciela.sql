@@ -13,7 +13,7 @@ BEGIN
         DBMS_OUTPUT.PUT_LINE('niepoprawne dane');
         RETURN;
     END IF;
-    obsadz_nauczyciela (in_nauczyciel => &id_nauczyciela, in_przedmiot => '&nazwa_przedmiotu', in_rozszerzenie => v_rozszerzenie);
+    pckge_nauczyciele.obsadz_nauczyciela (in_nauczyciel => &id_nauczyciela, in_przedmiot => '&nazwa_przedmiotu', in_rozszerzenie => v_rozszerzenie);
 END;
 /
 
