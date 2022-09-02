@@ -1,3 +1,5 @@
+SET SERVEROUTPUT ON
+
 PROMPT ********************** nauczyciele **********************
 PROMPT [1]  obsadz nauczyciela
 PROMPT [2]  przydziel godziny nauczycielowi
