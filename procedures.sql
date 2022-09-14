@@ -296,7 +296,7 @@ CREATE OR REPLACE PACKAGE BODY pckge_uczniowie AS
             END;
 
             IF check_data_zakonczenia IS NOT NULL THEN
-                dbms_output.put_line('Uczeń już nie uczy się w szkole. ');
+                dbms_output.put_line('Uczen już nie uczy sie w szkole. ');
                 RETURN;
             END IF;
             
@@ -322,7 +322,7 @@ CREATE OR REPLACE PACKAGE BODY pckge_uczniowie AS
         INSERT INTO oceny (id_przedmioty_uczen    ,ocena     ,timestamp_oceny)
                VALUES     (v_id_przedmioty_uczen  ,in_ocena  ,systimestamp   );
             
-            DBMS_OUTPUT.PUT_LINE('Uczniowi o peselu: '|| in_pesel || ' wpisano ocenę: '|| in_ocena|| ' z przedmiotu: '|| in_nazwa_przedmiotu);
+            DBMS_OUTPUT.PUT_LINE('Uczniowi o peselu: '|| in_pesel || ' wpisano ocene: '|| in_ocena|| ' z przedmiotu: '|| in_nazwa_przedmiotu);
 
             UPDATE przedmioty_uczen
                SET srednia_ocen = (SELECT AVG(ocena)
@@ -359,7 +359,7 @@ CREATE OR REPLACE PACKAGE BODY pckge_uczniowie AS
             END;
 
             IF check_data_zakonczenia IS NOT NULL THEN
-                dbms_output.put_line('Uczeń już nie uczy się w danej szkole. ');
+                dbms_output.put_line('Uczen już nie uczy sie w danej szkole. ');
                 RETURN;
             END IF;
             
@@ -385,7 +385,7 @@ CREATE OR REPLACE PACKAGE BODY pckge_uczniowie AS
                 UPDATE przedmioty_uczen
                    SET ocena_koncowa = in_ocena
                    WHERE id_przedmioty_uczen = v_id_przedmioty_uczen;
-            DBMS_OUTPUT.PUT_LINE('Uczniowi o peselu: '|| in_pesel || ' wpisano ocenę: '|| in_ocena|| ' z przedmiotu: '|| in_nazwa_przedmiotu);
+            DBMS_OUTPUT.PUT_LINE('Uczniowi o peselu: '|| in_pesel || ' wpisano ocene: '|| in_ocena|| ' z przedmiotu: '|| in_nazwa_przedmiotu);
         END;
 
     PROCEDURE aktual_data_zakonczenia_uczen (in_pesel IN INTEGER, in_data_zakonczenia IN VARCHAR2) IS
@@ -407,10 +407,10 @@ CREATE OR REPLACE PACKAGE BODY pckge_uczniowie AS
             END;
 
             IF check_data_zakonczenia IS NOT NULL 
-                THEN dbms_output.put_line('Uczeń już nie uczy się w danej szkole. ');
+                THEN dbms_output.put_line('Uczen już nie uczy sie w danej szkole. ');
                 RETURN;
             ELSIF check_data_rozpoczecia > to_date(in_data_zakonczenia , 'dd-mm-yyyy')
-            THEN dbms_output.put_line('Data zakonczenia nie moze być wcześniejsza niż data rozpoczęcia nauki. Prosze wpisac poprawna datę.');
+            THEN dbms_output.put_line('Data zakonczenia nie moze byc wczesniejsza niż data rozpoczecia nauki. Prosze wpisac poprawna date.');
                 RETURN;
             END IF;
             
@@ -420,7 +420,7 @@ CREATE OR REPLACE PACKAGE BODY pckge_uczniowie AS
                                         FROM dane_osobowe 
                                         WHERE pesel = in_pesel);
             
-            dbms_output.put_line('Uczniowi o peselu: ' || in_pesel || ' wpisano datę zakończenia nauki: ' || in_data_zakonczenia || '.');
+            dbms_output.put_line('Uczniowi o peselu: ' || in_pesel || ' wpisano date zakonczenia nauki: ' || in_data_zakonczenia || '.');
         END;
 
 
@@ -453,11 +453,11 @@ CREATE OR REPLACE PACKAGE BODY pckge_uczniowie AS
             END;
 
             IF check_data_zakonczenia IS NOT NULL 
-                THEN dbms_output.put_line('Uczeń już nie uczy się w danej szkole. ');
+                THEN dbms_output.put_line('Uczen już nie uczy sie w danej szkole. ');
                 RETURN;
                 
             ELSIF LOWER(substr(v_stara_klasa,2,1)) = LOWER(in_nowy_kierunek)
-            THEN dbms_output.put_line('Nowy kierunek nie może być taki sam jak wcześniejszy. Prosze wpisac poprawny nowy kierunek. ');
+            THEN dbms_output.put_line('Nowy kierunek nie może byc taki sam jak wczesniejszy. Prosze wpisac poprawny nowy kierunek. ');
                 RETURN;
             END IF;
 
@@ -548,7 +548,7 @@ CREATE OR REPLACE PACKAGE BODY po_koncu_roku AS
         END LOOP;
 
         CLOSE c1;
-        dbms_output.put_line('Wpisano datę zakończenia dla klas 4: '||v_data_zakonczenia);
+        dbms_output.put_line('Wpisano date zakonczenia dla klas 4: '||v_data_zakonczenia);
     END;
 
     PROCEDURE dodaj_rok_szkolny 
@@ -577,7 +577,7 @@ CREATE OR REPLACE PACKAGE BODY po_koncu_roku AS
         INSERT INTO rok_szkolny  (data_rozpoczecia     , data_zakonczenia    )
              VALUES              (out_data_rozpoczecia , out_data_zakonczenia);
             
-        dbms_output.put_line('Wpisano rok zaczynajacy się: ' || out_data_rozpoczecia || ' oraz kończacy sie: ' || out_data_zakonczenia);
+        dbms_output.put_line('Wpisano rok zaczynajacy sie: ' || out_data_rozpoczecia || ' oraz konczacy sie: ' || out_data_zakonczenia);
          
         EXECUTE IMMEDIATE 
         'ALTER SESSION 
@@ -686,7 +686,7 @@ PROCEDURE niezdanie IS
              WHERE id_ucznia = w.id_ucznia;
         END LOOP;       
         
-        dbms_output.put_line('Przeniesiono uczniów, którzy niezdali, o klasę niżej. ');
+        dbms_output.put_line('Przeniesiono uczniow, ktorzy niezdali, o klase niżej. ');
     END;    
 
 
@@ -756,7 +756,7 @@ CREATE OR REPLACE PROCEDURE dodaj_osobe
         END; 
 
         IF in_rola NOT IN ( 'k', 'u', 'n' ) 
-        THEN dbms_output.put_line('Niepoprawna rola. Prosze wybrać literę k, u lub n.');
+        THEN dbms_output.put_line('Niepoprawna rola. Prosze wybrac litere k, u lub n.');
         RETURN;
         END IF;
         
@@ -836,7 +836,7 @@ CREATE OR REPLACE PROCEDURE aktual_dane_osob (in_pesel IN INTEGER, in_kolumna IN
         'UPDATE dane_osobowe 
             SET '||in_kolumna||' = '''||in_aktualizacja||'''
           WHERE pesel = '||in_pesel; 
-        dbms_output.put_line( 'Zaktualizowano pole '||in_kolumna||' o wartość: '||in_aktualizacja|| ' dla osoby o peselu: '|| in_pesel||'.');
+        dbms_output.put_line( 'Zaktualizowano pole '||in_kolumna||' o wartosc: '||in_aktualizacja|| ' dla osoby o peselu: '|| in_pesel||'.');
                
     EXCEPTION
             WHEN check_constraint_violated 
@@ -905,7 +905,7 @@ PROCEDURE zmiana_wychowawcy (in_id_klasy IN VARCHAR2, in_id_wychowawcy IN INTEGE
         END;
 
         IF check_grupa_daty IS NOT NULL THEN 
-            dbms_output.put_line('Klasa już skończyła szkole');
+            dbms_output.put_line('Klasa już skonczyła szkole');
             RETURN;
         END IF;
         
@@ -1090,7 +1090,7 @@ PROCEDURE zakoncz_prace (in_nauczyciel IN INTEGER, in_data_zakonczenia IN VARCHA
         WHEN niepoprawna_data THEN
             DBMS_OUTPUT.PUT_LINE('Data zakonczenia nie moze byc mniejsza od daty rozpoczecia!');
         WHEN nauczyciel_jest_wychowawca THEN
-            DBMS_OUTPUT.PUT_LINE('Nauczyciel jest aktualnie wychowawcą!');
+            DBMS_OUTPUT.PUT_LINE('Nauczyciel jest aktualnie wychowawca!');
         WHEN NO_DATA_FOUND THEN
             DBMS_OUTPUT.PUT_LINE('Nieprawidlowe id nauczyciela!');
         WHEN OTHERS THEN
@@ -1273,7 +1273,7 @@ PROCEDURE wypisz_oceny_ucznia (in_pesel IN INTEGER  ) IS
         END;
 
         IF check_data_zakonczenia IS NOT NULL 
-         THEN dbms_output.put_line('Uczeń już nie uczy się w danej szkole. Pokazano oceny z ostatniej klasy ucznia.');
+         THEN dbms_output.put_line('Uczen już nie uczy sie w danej szkole. Pokazano oceny z ostatniej klasy ucznia.');
         END IF;
          
         SELECT  imie, nazwisko, g.id_klasy INTO v_imie, v_nazwisko, v_id_klasy
@@ -1283,7 +1283,7 @@ PROCEDURE wypisz_oceny_ucznia (in_pesel IN INTEGER  ) IS
          WHERE pesel =  in_pesel;
           
         dbms_output.put_line(v_imie || ' ' || v_nazwisko || ' klasa ' || v_id_klasy);
-        dbms_output.put_line('Lista przedmiotów i ocen ');
+        dbms_output.put_line('Lista przedmiotow i ocen ');
         dbms_output.put('------------------------');
         
         FOR w IN c1 LOOP
@@ -1301,7 +1301,7 @@ PROCEDURE wypisz_oceny_ucznia (in_pesel IN INTEGER  ) IS
             END LOOP;
             CLOSE c2;
             
-            dbms_output.put('Średnia ocen: ' || w.srednia_ocen || ' Ocena koncowa: ' || w.ocena_koncowa);
+            dbms_output.put('Srednia ocen: ' || w.srednia_ocen || ' Ocena koncowa: ' || w.ocena_koncowa);
         END LOOP;
     END;
 
