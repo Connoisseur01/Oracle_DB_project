@@ -913,7 +913,7 @@ PROCEDURE zmiana_wychowawcy (in_id_klasy IN VARCHAR2, in_id_wychowawcy IN INTEGE
             SELECT id_nauczyciela INTO check_nauczyciele
               FROM nauczyciele
              WHERE id_nauczyciela = in_id_wychowawcy
-               AND data_zakonczenia_pracy IS NOT NULL;
+               AND data_zakonczenia_pracy IS NULL;
 
         EXCEPTION
             WHEN no_data_found THEN 
