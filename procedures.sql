@@ -1027,18 +1027,25 @@ PROCEDURE usun_przydzielone_godz (in_przedmiot IN VARCHAR2, in_klasa IN VARCHAR2
         v_przedmiot_klasa      INTEGER;
         v_ilosc_godzin         INTEGER;
         nauczyciel_przedmiot   INTEGER;
-        check_rozszerzenie     VARCHAR2(1);
+        check_rozszerzenie     INTEGER;
         v_nazwa                VARCHAR2(30) := LOWER(in_przedmiot) || '_' || SUBSTR(in_klasa, 1, 1);
     BEGIN
-        SELECT rozszerzenie INTO check_rozszerzenie
+        SELECT CASE rozszerzenie WHEN 'R' THEN 1 ELSE 0 END INTO check_rozszerzenie
           FROM przedmioty_klasy
           JOIN przedmioty USING (id_przedmiotu)
          WHERE id_klasy = in_klasa AND id_przedmiotu IN (SELECT id_przedmiotu FROM przedmioty WHERE nazwa_przedmiotu = v_nazwa);
 
-        SELECT id_przedmioty_klasy INTO v_przedmiot_klasa
-          FROM przedmioty_klasy 
-         WHERE id_klasy = in_klasa 
-           AND id_przedmiotu = (SELECT id_przedmiotu FROM przedmioty WHERE nazwa_przedmiotu = v_nazwa AND rozszerzenie = check_rozszerzenie);
+        IF check_rozszerzenie = 1 THEN
+            SELECT id_przedmioty_klasy INTO v_przedmiot_klasa
+            FROM przedmioty_klasy 
+            WHERE id_klasy = in_klasa 
+            AND id_przedmiotu = (SELECT id_przedmiotu FROM przedmioty WHERE nazwa_przedmiotu = v_nazwa AND rozszerzenie IS NOT NULL);
+        ELSE
+            SELECT id_przedmioty_klasy INTO v_przedmiot_klasa
+            FROM przedmioty_klasy 
+            WHERE id_klasy = in_klasa 
+            AND id_przedmiotu = (SELECT id_przedmiotu FROM przedmioty WHERE nazwa_przedmiotu = v_nazwa AND rozszerzenie IS NULL);
+        END IF;
         
         SELECT ilosc_przydzielonych_godzin INTO v_ilosc_godzin
           FROM przydzielone_godziny
@@ -1050,7 +1057,7 @@ PROCEDURE usun_przydzielone_godz (in_przedmiot IN VARCHAR2, in_klasa IN VARCHAR2
 
     EXCEPTION
         WHEN NO_DATA_FOUND THEN
-            DBMS_OUTPUT.PUT_LINE('nieprawidlowa nazwa przedmiotu lub id klasy!');
+          DBMS_OUTPUT.PUT_LINE('nieprawidlowa nazwa przedmiotu lub id klasy!');
         WHEN OTHERS THEN
             RAISE;
     END;
